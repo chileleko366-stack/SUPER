@@ -1,0 +1,84 @@
+{
+  "slug": "mind-mosaic",
+  "displayName": "Mind Mosaic",
+  "niche": "psychology, cognitive biases, emotions, self-improvement",
+  "tone": "warm, insightful, non-clinical psychology communicator",
+  "sourceDocs": {
+    "moodboard": "research/visual-reference/mind-mosaic.md",
+    "topicsVoiceMusic": "research/channels/mind-mosaic-topics-voice-music.md"
+  },
+  "hookFormula": "direct-question-or-curiosity-gap",
+  "narrativeStructure": "curiosity-gap-reveal",
+  "firecrawlQueryPatterns": [
+    "psychology today cognitive bias 2026",
+    "self improvement psychology trend 2026",
+    "emotional wellbeing science backed 2026"
+  ],
+  "voice": {
+    "provider": "piper",
+    "engineRepo": "OHF-Voice/piper1-gpl",
+    "engineLicense": "GPL-3.0 (engine, shelled-out-to as external process, not statically linked)",
+    "voiceFamily": "en_US-libritts_r",
+    "voiceLicense": "CC-BY (attribution required per rhasspy/piper#271)",
+    "voiceLicenseNote": "en_US-lessac explicitly avoided: research-only dataset license per sibling-channel finding",
+    "note": "Specific per-speaker checkpoint not yet auditioned by ear (Open Gap in research doc) -- pipeline currently pins a default LibriTTS_R speaker id and operator should re-audition before locking production voice."
+  },
+  "music": {
+    "policy": "royalty-free-safe-default",
+    "note": "Copyright Risk Flag in research doc leaves trending-vs-royalty-free as an explicit operator decision. Pilot defaults to the safe (non-trending) path -- see pipeline music-bed generation for what is actually wired for this pilot vs. still a stub."
+  },
+  "sfx": {
+    "source": "@rse/soundfx (CC-0 / CC-BY-3.0), individual soundfx.d/*.mp3 files vendored locally",
+    "path": "soundfx.d/"
+  },
+  "visualTokens": {
+    "background": {
+      "explanationBase": "#0C0B0B",
+      "explanationBaseAlt": "#141414",
+      "infographicCardBg": "#0B1132"
+    },
+    "moodAccents": {
+      "calmInsight": { "primary": "#84BD60", "secondary": "#EDF3F2" },
+      "lightnessEnergy": { "primary": "#F0A98B", "secondary": "#DACF8D" },
+      "tensionBias": { "primary": "#E2726C" }
+    },
+    "captionEmphasis": "#EFD300",
+    "captionDefault": "#FFFFFF",
+    "notes": "Blue (calm/gratitude/balance per Reliqio case-study text) was named but not swatched in source -- not used as a hard token, flagged in moodboard Open Gaps."
+  },
+  "typography": {
+    "captionStyle": "heavy near-all-caps grotesque/geometric sans (visual impression only, exact family not verified)",
+    "captionFallbackFontStack": "'Archivo Black', 'Poppins', 'Montserrat', system-ui, sans-serif",
+    "captionRevealUnit": "1-3 word phrases, ~1-2s cadence",
+    "emphasisTier": "two-tier: default white, one gold (#EFD300) emphasized keyword per caption beat"
+  },
+  "spacing": {
+    "captionSafeZoneVerticalPct": [0.60, 0.78],
+    "infographicReveal": "staggered/incremental, one element per speech beat, not all-at-once",
+    "brollDensity": "single-subject, near-zero on-screen text during pure b-roll beats"
+  },
+  "pacing": {
+    "fps": 60,
+    "referenceAvgShotLengthSeconds": 7.59,
+    "referenceAvgShotLengthFrames60fps": 455,
+    "referenceCutsPerMinute": 6.9,
+    "hookWindowSeconds": 3,
+    "hookWindowFrames": 180,
+    "note": "Reference clip's talking-head shots have no faceless equivalent -- adapted shot grammar below maps the observed beat structure onto text/graphics-only primitives, see docs/pilot-mind-mosaic-adaptation.md"
+  },
+  "motionPersonality": {
+    "layoutVariance": "medium",
+    "motionIntensity": "low-medium",
+    "visualDensity": "low",
+    "easingNote": "avoid bounce/overshoot; favor slow continuous ambient motion (hue-cycling orb) during holds over aggressive spring easing"
+  },
+  "shotGrammar": [
+    { "beat": "hook", "primitive": "KineticCaption", "accent": "captionEmphasis" },
+    { "beat": "concept_card", "primitive": "InfoCard", "accent": "calmInsight" },
+    { "beat": "bridge", "primitive": "KineticCaption", "accent": "lightnessEnergy" },
+    { "beat": "example", "primitive": "KenBurnsCard", "accent": "lightnessEnergy" },
+    { "beat": "explanation", "primitive": "KineticCaption", "accent": "calmInsight" },
+    { "beat": "mechanism", "primitive": "InfoCard", "accent": "tensionBias" },
+    { "beat": "conclusion", "primitive": "KineticCaption", "accent": "calmInsight" }
+  ]
+}

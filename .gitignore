@@ -1,0 +1,13 @@
+.env
+.env.local
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+research/frames_tmp/
+*.mp4.tmp
+.DS_Store
+.voices/
+out/
+public/generated/
+*.wav

@@ -1,0 +1,56 @@
+name: Render Shorts (10-channel matrix)
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    # TBD: placeholder twice-daily cadence, confirm timezone/times with operator
+    # before enabling — currently commented out until pipeline is proven end-to-end.
+    # - cron: "0 12,0 * * *"
+
+jobs:
+  render:
+    strategy:
+      fail-fast: false
+      matrix:
+        channel:
+          - penny-blueprint
+          - cosmic-window
+          - echoes-of-ages
+          - mind-mosaic
+          - venture-forge
+          - thought-tides
+          - earthwise-everyday
+          - market-lens
+          - code-trail
+          - silver-screen-insight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Node deps
+        run: npm install
+
+      - name: Install Python deps
+        run: pip install -r pipeline/requirements.txt
+
+      - name: Run pipeline for channel
+        env:
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+          NVIDIA_NIM_API_KEY: ${{ secrets.NVIDIA_NIM_API_KEY }}
+          CHANNEL: ${{ matrix.channel }}
+        run: python pipeline/run_channel.py --channel "$CHANNEL"
+
+      - name: Upload rendered artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.channel }}-render
+          path: out/${{ matrix.channel }}/*.mp4
+          if-no-files-found: error
