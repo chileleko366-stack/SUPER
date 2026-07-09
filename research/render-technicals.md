@@ -46,6 +46,12 @@ export const HEIGHT = 1920;
 
 ## Concurrency / render time on GitHub Actions runners
 
+- **Correction from the Mind Mosaic pilot run (job 86182420980,
+  2026-07-09)**: ffmpeg is **not** preinstalled on `ubuntu-latest` runners,
+  contrary to this doc's original assumption -- a real workflow run failed
+  at `ffmpeg -version` with "command not found." Every workflow must run
+  `sudo apt-get update && sudo apt-get install -y ffmpeg` as an explicit
+  step before any ffmpeg-dependent pipeline code runs.
 - Standard GitHub-hosted `ubuntu-latest` runners: 2 vCPU, 7GB RAM, no GPU.
   Remotion rendering is CPU-bound (headless Chrome frame capture + ffmpeg
   encode); GPU is not required for h264 encode at this resolution.
