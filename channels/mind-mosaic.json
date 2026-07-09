@@ -15,7 +15,9 @@
     "emotional wellbeing science backed 2026"
   ],
   "voice": {
-    "provider": "piper",
+    "engine": "piper",
+    "checkpoint": "en_US-libritts_r-medium",
+    "speakerId": 0,
     "engineRepo": "OHF-Voice/piper1-gpl",
     "engineLicense": "GPL-3.0 (engine, shelled-out-to as external process, not statically linked)",
     "voiceFamily": "en_US-libritts_r",

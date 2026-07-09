@@ -17,7 +17,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from lib import firecrawl_client, nim_client, tts_piper, assets_gen  # noqa: E402
+from lib import firecrawl_client, nim_client, tts_piper, tts_kokoro, assets_gen  # noqa: E402
 
 ROOT = Path(__file__).parent.parent
 FPS = 60
@@ -94,6 +94,29 @@ def resolve_accent(beat_cfg: dict) -> str:
     return beat_cfg["accent"]
 
 
+def synthesize_vo(text: str, channel: dict, out_wav: Path) -> float:
+    """Dispatches to the TTS engine named in the channel's own voice
+    research (channels/<slug>.json -> voice.engine), so each channel can use
+    the engine its own licensing/persona research actually recommended
+    instead of one hardcoded engine for every channel."""
+    voice_cfg = channel["voice"]
+    engine = voice_cfg.get("engine", "piper")
+
+    if engine == "piper":
+        model_path = ROOT / ".voices" / f"{voice_cfg['checkpoint']}.onnx"
+        if not model_path.exists():
+            raise RuntimeError(
+                f"Piper voice model not found at {model_path} -- download it first: "
+                f"python -m piper.download_voices {voice_cfg['checkpoint']}"
+            )
+        return tts_piper.synthesize(text, model_path, out_wav, speaker_id=voice_cfg.get("speakerId", 0))
+
+    if engine == "kokoro":
+        return tts_kokoro.synthesize(text, voice_cfg["checkpoint"], out_wav, lang_code=voice_cfg.get("langCode", "a"))
+
+    raise ValueError(f"Unknown voice engine {engine!r} in channel config")
+
+
 def synthesize_music_bed(out_path: Path, duration_s: float) -> Path:
     """PLACEHOLDER music bed: a soft synthesized pad, NOT a sourced trending
     or royalty-free-library track. Real music sourcing per the Copyright
@@ -134,8 +157,7 @@ def run(channel_slug: str, run_id: str | None = None) -> Path:
     script = generate_script(channel, topic)
     (out_dir / "script.json").write_text(json.dumps(script, indent=2), encoding="utf-8")
 
-    print("[3/5] Synthesizing voiceover (Piper TTS) + resolving assets...")
-    voice_model = ROOT / ".voices" / "en_US-libritts_r-medium.onnx"
+    print(f"[3/5] Synthesizing voiceover ({channel['voice'].get('engine', 'piper')} TTS) + resolving assets...")
     sfx_dir = ROOT / "soundfx.d"
 
     segments = []
@@ -148,7 +170,7 @@ def run(channel_slug: str, run_id: str | None = None) -> Path:
 
         wav_rel = f"audio/{i:02d}_{beat}.wav"
         wav_abs = public_dir / wav_rel
-        duration_s = tts_piper.synthesize(text, voice_model, wav_abs, speaker_id=0)
+        duration_s = synthesize_vo(text, channel, wav_abs)
         duration_frames = max(MIN_SEGMENT_FRAMES, math.ceil(duration_s * FPS) + 12)
 
         seg = {
