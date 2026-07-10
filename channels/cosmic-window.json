@@ -1,0 +1,86 @@
+{
+  "slug": "cosmic-window",
+  "displayName": "Cosmic Window",
+  "niche": "astronomy, space missions, celestial objects, discoveries",
+  "tone": "awe-driven but precise science communicator -- wonder-forward, not sensationalist",
+  "sourceDocs": {
+    "moodboard": "research/visual-reference/cosmic-window.md",
+    "topicsVoiceMusic": "research/channels/cosmic-window-topics-voice-music.md"
+  },
+  "hookFormula": "striking-fact-then-context",
+  "narrativeStructure": "discovery-reveal-implication",
+  "firecrawlQueryPatterns": [
+    "space astronomy discovery news 2026",
+    "Webb telescope discovery 2026",
+    "Hubble telescope discovery 2026"
+  ],
+  "voice": {
+    "engine": "piper",
+    "checkpoint": "en_US-libritts_r-medium",
+    "speakerId": 0,
+    "engineRepo": "OHF-Voice/piper1-gpl",
+    "engineLicense": "GPL-3.0 (engine, shelled-out-to as external process, not statically linked)",
+    "voiceFamily": "en_US-libritts_r",
+    "voiceLicense": "CC-BY (attribution required per rhasspy/piper#271)",
+    "voiceLicenseNote": "Channel's own research doc flagged specific checkpoint as an Open Gap (Hugging Face rhasspy/piper-voices page returned only JS-shell boilerplate via Firecrawl). en_US-libritts_r-medium used here as the safe default -- independently confirmed commercial-safe (CC-BY) by two other channels' research (see mind-mosaic.json), not a checkpoint pinned by this channel's own research.",
+    "note": "Per-speaker id not yet auditioned by ear for 'measured, unhurried documentary-narrator register' -- operator should re-audition alternate speaker ids within this multi-speaker model before locking production voice, per this channel's own research doc."
+  },
+  "music": {
+    "policy": "royalty-free-safe-default",
+    "note": "Copyright Risk Flag in research doc leaves trending-vs-royalty-free as an explicit operator decision -- stem-separating a trending track does not clear the underlying composition's copyright. Defaults to the safe (non-trending) path -- see pipeline music-bed generation for what is actually wired (a synthesized placeholder) vs. still a stub."
+  },
+  "sfx": {
+    "source": "@rse/soundfx (CC-0 / CC-BY-3.0), individual soundfx.d/*.mp3 files vendored locally",
+    "path": "soundfx.d/"
+  },
+  "visualTokens": {
+    "background": {
+      "explanationBase": "#050914",
+      "explanationBaseAlt": "#020202",
+      "infographicCardBg": "#000B24"
+    },
+    "moodAccents": {
+      "calmInsight": { "primary": "#49C5B6", "secondary": "#BFBEBC" },
+      "lightnessEnergy": { "primary": "#DF6C4F", "secondary": "#7C5C4A" },
+      "tensionBias": { "primary": "#6B4A84" }
+    },
+    "captionEmphasis": "#FFD700",
+    "captionDefault": "#FFFFFF",
+    "notes": "Background tokens are the PIL-pixel-sampled near-black-navy/pure-black/deep-navy trio from the reference clip's frames (moodboard 'Extracted Color Tokens' section B). calmInsight primary (#49C5B6) is the cross-validated cool teal/cyan secondary accent; lightnessEnergy primary (#DF6C4F) is the burnt-orange accent attested independently on two separate Awwwards sites plus corroborated by the Dribbble rust-family swatches (#993117/#B85434/#5B2011) -- the moodboard's single most cross-validated color finding. tensionBias primary (#6B4A84) is the sampled violet/mauve nebula-wisp tone. captionEmphasis (#FFD700) is the gold/yellow karaoke-caption color pixel-sampled directly from the downloaded reference Short; the moodboard explicitly flags this as caption-chrome rather than a background/accent brand color, which is exactly the role it plays here (KineticCaption emphasisWord only, never a background/card token)."
+  },
+  "typography": {
+    "captionStyle": "heavy/bold rounded-sans grotesk, solid fill with dark stroke outline for contrast over busy starfield/nebula footage (exact font file unverified from video pixels -- Open Gap in moodboard)",
+    "captionFallbackFontStack": "'Archivo Black', 'Poppins', 'Montserrat', system-ui, sans-serif",
+    "captionRevealUnit": "1-3 word phrases, ~2s cadence (karaoke-style word-by-word observed in reference clip)",
+    "emphasisTier": "two-tier: default white (#FFFFFF), one gold (#FFD700) emphasized keyword per caption beat"
+  },
+  "spacing": {
+    "captionSafeZoneVerticalPct": [0.60, 0.78],
+    "infographicReveal": "staggered/incremental, one element per speech beat, not all-at-once",
+    "brollDensity": "single striking image per hold, full-bleed, no lower-third bar or watermark -- moodboard's 'low visual density' finding"
+  },
+  "pacing": {
+    "fps": 60,
+    "referenceAvgShotLengthSeconds": 6.5,
+    "referenceAvgShotLengthFrames60fps": 390,
+    "referenceCutsPerMinute": 9.2,
+    "hookWindowSeconds": 3,
+    "hookWindowFrames": 180,
+    "note": "Reference clip's average shot hold read visually off an 11-shot/23-frame 2s-interval contact sheet (moodboard Motion/Pacing Notes) as ~6-7s, not a frame-accurate scene-cut detector pass -- treated as an estimate, per moodboard Open Gaps. Adapted shot grammar below maps the observed low-layout-variance/low-to-moderate-motion-intensity beat structure onto text/graphics-only primitives, same adaptation pattern as docs/pilot-mind-mosaic-adaptation.md."
+  },
+  "motionPersonality": {
+    "layoutVariance": "low",
+    "motionIntensity": "low-to-moderate",
+    "visualDensity": "low",
+    "easingNote": "avoid spring-overshoot 'punchy' typography moves -- moodboard explicitly reads this channel's 'precise' half of its tone as undercut by bouncy easing; favor simple fade / easeOut / easeInOut caption-in/out (Motion.dev vocabulary) and slow continuous ambient motion (hue-cycling orb) during holds, matching the reference's straight-hard-cuts-no-shake-no-glitch editing"
+  },
+  "shotGrammar": [
+    { "beat": "hook", "primitive": "KineticCaption", "accent": "lightnessEnergy" },
+    { "beat": "concept_card", "primitive": "InfoCard", "accent": "calmInsight" },
+    { "beat": "bridge", "primitive": "KineticCaption", "accent": "lightnessEnergy" },
+    { "beat": "example", "primitive": "KenBurnsCard", "accent": "tensionBias" },
+    { "beat": "explanation", "primitive": "KineticCaption", "accent": "calmInsight" },
+    { "beat": "mechanism", "primitive": "InfoCard", "accent": "tensionBias" },
+    { "beat": "conclusion", "primitive": "KineticCaption", "accent": "calmInsight" }
+  ]
+}
