@@ -1,0 +1,85 @@
+{
+  "slug": "market-lens",
+  "displayName": "Market Lens",
+  "niche": "economics, markets, policy, trade, current trends",
+  "tone": "sharp, analytical, macro-explainer",
+  "sourceDocs": {
+    "moodboard": "research/visual-reference/market-lens.md",
+    "topicsVoiceMusic": "research/channels/market-lens-topics-voice-music.md"
+  },
+  "hookFormula": "stat-callout-question",
+  "narrativeStructure": "mechanism-then-illustrative-numbers",
+  "firecrawlQueryPatterns": [
+    "inflation tariffs economy 2026",
+    "federal reserve interest rates markets 2026",
+    "stock market economic outlook 2026"
+  ],
+  "voice": {
+    "engine": "piper",
+    "checkpoint": "en_US-ryan-medium",
+    "speakerId": 0,
+    "engineRepo": "rhasspy/piper",
+    "engineLicense": "MIT (piper binary/voices, per repo License panel; note active dev moved to OHF-Voice/piper1-gpl which is GPL-3.0 -- this channel pins the MIT-licensed classic piper artifact per its own research)",
+    "voiceFamily": "en_US-ryan",
+    "voiceLicenseNote": "Dataset-level license for the ryan checkpoint specifically was not independently re-verified this pass (per research doc Open Gaps) -- verify huggingface.co/rhasspy/piper-voices/tree/main/en/en_US/ryan before shipping.",
+    "note": "Standard American male voice, medium-quality tier -- reads as neutral/authoritative, the channel's own research doc's stated fit for a sharp/analytical macro-explainer register (vs. warmer voices like amy/kristin better suited to lifestyle-tone channels)."
+  },
+  "music": {
+    "policy": "royalty-free-safe-default",
+    "note": "Copyright Risk Flag in research doc (trending-track discovery upside vs. Content ID/takedown risk on a monetized, automated channel) is an explicit operator decision, not resolved here. Pilot defaults to the safe (non-trending) path, same as Mind Mosaic and Penny Blueprint -- see pipeline music-bed generation for what is actually wired vs. still a stub."
+  },
+  "sfx": {
+    "source": "@rse/soundfx (CC-0 / CC-BY-3.0), individual soundfx.d/*.mp3 files vendored locally",
+    "path": "soundfx.d/"
+  },
+  "visualTokens": {
+    "background": {
+      "explanationBase": "#050505",
+      "explanationBaseAlt": "#0B0B10",
+      "infographicCardBg": "#0A0E1A"
+    },
+    "moodAccents": {
+      "calmInsight": { "primary": "#3369BC", "secondary": "#265DBA" },
+      "lightnessEnergy": { "primary": "#815EA9", "secondary": "#58347A" },
+      "tensionBias": { "primary": "#C4432E" }
+    },
+    "captionEmphasis": "#265DBA",
+    "captionDefault": "#FFFFFF",
+    "notes": "background/calmInsight/lightnessEnergy/captionEmphasis are all directly PIL-sampled hex values from the downloaded reference clip (research/visual-reference/market-lens.md Extracted Color Tokens): near-black chart backdrop (#000000-#010000, used as #050505 to keep a hint of lift for a text-only canvas), chart-grid accent blue (#265DBA), US-flag blue (#3369BC), and the opening bumper's purple gradient (#58347A -> #815EA9). tensionBias (#C4432E) is NOT a measured token -- the moodboard explicitly flags a red 'up-arrow' accent as 'observed, not hex-confirmed' and instructs not to treat any specific red hex as sourced. This value is a deliberate, disclosed synthesis (a standard alert-red) standing in for that unconfirmed accent, same disclosure pattern as Mind Mosaic's blue-named-but-not-swatched note."
+  },
+  "typography": {
+    "captionStyle": "bold, heavily condensed sans-serif, slight italic slant, all-caps for bumper/chart-overlay text",
+    "captionFallbackFontStack": "'Archivo Black', 'Oswald', 'Bebas Neue', system-ui, sans-serif",
+    "captionRevealUnit": "additive stacking for checklist-style reveals; stat callouts pop/settle rather than fade",
+    "emphasisTier": "single vivid chart-accent blue (#265DBA) emphasis tone against the near-black canvas, echoing the reference clip's own on-screen chart/stat-callout color"
+  },
+  "spacing": {
+    "captionSafeZoneVerticalPct": [0.60, 0.78],
+    "infographicReveal": "staggered/incremental per DataChart/InfoCard, matching the reference's additive checklist-build pattern",
+    "brollDensity": "allow a headline stat plus one supporting micro-label, cap concurrent on-screen text blocks at ~3 per moodboard Motion-Personality Direction"
+  },
+  "pacing": {
+    "fps": 60,
+    "referenceAvgShotLengthSeconds": 3,
+    "referenceAvgShotLengthFrames60fps": 180,
+    "referenceCutsPerMinute": 20,
+    "hookWindowSeconds": 3,
+    "hookWindowFrames": 180,
+    "note": "Reference clip's fast section runs a new overlay/cut roughly every 3s (measured via 3s-interval sampling, see moodboard Motion/Pacing Notes) before relaxing to 9-15s holds during the checklist build-up. Adapted here as beat duration driven by VO length (per existing pipeline pattern) rather than a fixed cut clock."
+  },
+  "motionPersonality": {
+    "layoutVariance": "medium",
+    "motionIntensity": "medium-high",
+    "visualDensity": "medium-high",
+    "easingNote": "spring/overshoot easing IS appropriate here, per the moodboard's directly-measured 'pop in, settle' checkmark/stat-callout reveal behavior -- this channel's DataChart beats use spring-based bar growth (see tokens.chartMotion = energetic) rather than the plain ease-out-cubic every other channel in this pipeline uses."
+  },
+  "shotGrammar": [
+    { "beat": "hook", "primitive": "KineticCaption", "accent": "tensionBias" },
+    { "beat": "concept_card", "primitive": "InfoCard", "accent": "calmInsight" },
+    { "beat": "bridge", "primitive": "KineticCaption", "accent": "lightnessEnergy" },
+    { "beat": "data_snapshot", "primitive": "DataChart", "accent": "tensionBias" },
+    { "beat": "explanation", "primitive": "KineticCaption", "accent": "calmInsight" },
+    { "beat": "mechanism", "primitive": "InfoCard", "accent": "tensionBias" },
+    { "beat": "conclusion", "primitive": "KineticCaption", "accent": "calmInsight" }
+  ]
+}
