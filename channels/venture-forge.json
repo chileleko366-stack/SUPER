@@ -1,0 +1,86 @@
+{
+  "slug": "venture-forge",
+  "displayName": "Venture Forge",
+  "niche": "startups, business models, strategy, founder case studies",
+  "tone": "sharp, energetic, builder-to-builder",
+  "sourceDocs": {
+    "moodboard": "research/visual-reference/venture-forge.md",
+    "topicsVoiceMusic": "research/channels/venture-forge-topics-voice-music.md"
+  },
+  "hookFormula": "named-company-plus-sharp-verb",
+  "narrativeStructure": "case-study-teardown-actionable-takeaway",
+  "firecrawlQueryPatterns": [
+    "startup business model breakdown bankruptcy 2026",
+    "startup funding rounds this week 2026",
+    "founder mistake startup strategy case study 2026"
+  ],
+  "voice": {
+    "engine": "piper",
+    "checkpoint": "en_US-libritts_r-medium",
+    "speakerId": 0,
+    "engineRepo": "OHF-Voice/piper1-gpl",
+    "engineLicense": "GPL-3.0 (engine, shelled-out-to as external process, not statically linked)",
+    "voiceFamily": "en_US-libritts_r",
+    "voiceLicense": "CC-BY (attribution required per rhasspy/piper#271)",
+    "voiceLicenseNote": "en_US-lessac-medium (this channel's own research doc's suggested starting checkpoint) was independently checked, not blindly trusted: fetched the live MODEL_CARD at https://huggingface.co/rhasspy/piper-voices/raw/main/en/en_US/lessac/medium/MODEL_CARD, which points to the underlying dataset license at https://www.cstr.ed.ac.uk/projects/blizzard/2013/lessac_blizzard2013/license.html -- that license explicitly defines 'Research Purposes' as excluding 'any commercial purpose, including the development, marketing, commercialisation, sale or licencing of voice synthesis or speech recognition products,' and states audiobook recordings are licensed 'exclusively for those purposes associated with research and exploration of speech technologies.' This CONFIRMS the Earthwise Everyday sibling-channel finding (research-only, not commercial-safe) and CONTRADICTS the Silver Screen Insight sibling-channel claim that en_US-lessac-medium is MIT -- that claim appears to be wrong, likely conflating Piper's own MIT-era engine license with the separate per-voice dataset license. Venture Forge therefore uses en_US-libritts_r-medium instead: CC-BY, independently confirmed commercial-safe by two other channels' research (mind-mosaic and a sibling), consistent with this channel's own research doc's explicit instruction to verify per-voice MODEL_CARD terms before shipping."
+  },
+  "music": {
+    "policy": "royalty-free-safe-default",
+    "note": "Copyright Risk Flag in research/channels/venture-forge-topics-voice-music.md leaves trending-vs-royalty-free as an explicit operator decision (Venture Forge is described as a high-volume automated channel, which the research doc says compounds Content-ID/takedown risk from trending-but-copyrighted instrumentals faster than on a manually-curated channel). This run defaults to the safe (non-trending) path -- see pipeline music-bed generation for what is actually wired for this run vs. still a stub."
+  },
+  "sfx": {
+    "source": "@rse/soundfx (CC-0 / CC-BY-3.0), individual soundfx.d/*.mp3 files vendored locally",
+    "path": "soundfx.d/"
+  },
+  "visualTokens": {
+    "background": {
+      "explanationBase": "#070403",
+      "explanationBaseAlt": "#141022",
+      "infographicCardBg": "#59372D"
+    },
+    "moodAccents": {
+      "calmInsight": { "primary": "#E82B08", "secondary": "#E8D6B4" },
+      "lightnessEnergy": { "primary": "#FA9F1A", "secondary": "#FBC65B" },
+      "tensionBias": { "primary": "#AA3F21" }
+    },
+    "captionEmphasis": "#E85953",
+    "captionDefault": "#FFFFFF",
+    "notes": "Schema key names (calmInsight/lightnessEnergy/tensionBias) are fixed by src/remotion/types.ts's AccentKey enum -- reused unchanged per the generic-tier instruction, remapped here to Venture Forge's own researched palette rather than their Mind Mosaic psychology-toned literal meaning. Both of this channel's own moodboard-researched palettes (an aspirational Dribbble fintech-dashboard shot's published hex palette, and pixel-measured colors sampled directly off a real, currently-live business Short via PIL) independently converge on a near-black base with a warm red/orange/amber accent ramp -- that convergence is the basis for the token choices above. explanationBase (#070403) and the moodAccents primary/secondary values are taken directly from the Dribbble shot's own published palette; captionEmphasis (#E85953) is the PIL-measured coral-red keyword-highlight-box color sampled from the real reference Short's captions (frame_020.png), i.e. the single most directly on-point measured token available. infographicCardBg (#59372D) and explanationBaseAlt (#141022) use the aspirational palette's 'secondary surface' brown and the Short's own measured near-black navy CTA-card color respectively, both distinct from the base so InfoCard beats read as a separate surface. Unused-but-documented measured tokens (#3894B1 watermark teal, #EFC833 section-title gold, #D6DCE8 CTA-card lavender, #594838/#2F261A/#C49F51/#DACBA2 B-roll dominant colors) are recorded in the moodboard but not wired into this fixed 3-accent schema -- not fabricated, just not consumed by the current generic primitives."
+  },
+  "typography": {
+    "captionStyle": "bold geometric/condensed sans, white fill with black-stroke impression on caption body text (exact typeface family not verified -- flagged Open Gap in moodboard, rasterized video source exposes no font metadata)",
+    "captionFallbackFontStack": "'Archivo Black', 'Space Grotesk', 'Inter', system-ui, sans-serif",
+    "captionRevealUnit": "1-3 word phrases, ~0.75-1.5s cadence (measured directly on the reference Short's fine-sampled frames, decoupled from and faster than the underlying B-roll cut rate)",
+    "emphasisTier": "two-tier: default white, one coral-red (#E85953) emphasized keyword per caption beat, matching the measured keyword-highlight-box treatment observed in the reference Short"
+  },
+  "spacing": {
+    "captionSafeZoneVerticalPct": [0.60, 0.75],
+    "captionSafeZoneNote": "Vertical placement is fixed in src/remotion/primitives/KineticCaption.tsx (top: 60%, band height: 15% of frame) regardless of channel config -- documented here for the record, not functionally read by the pipeline. Consistent with this channel's own moodboard measurement that captions stay clear of the bottom ~20% platform-UI reserve and the lower-third watermark's bottom 12-15% zone.",
+    "infographicReveal": "staggered/incremental, one element per speech beat, not all-at-once (fixed InfoCard.tsx behavior, matches this channel's own moodboard's observed dashboard-reference intent of directing focus via color/sequence rather than static all-at-once layout)",
+    "brollDensity": "medium-high -- near-continuous captions layered over B-roll plus periodic bold title/stat cards and a persistent lower-third watermark, per the moodboard's measured 'Visual density: medium-high' finding (contrast with Mind Mosaic's low-density single-subject b-roll)"
+  },
+  "pacing": {
+    "fps": 60,
+    "referenceAvgShotLengthSeconds": 5.3,
+    "referenceAvgShotLengthFrames60fps": 320,
+    "referenceCutsPerMinute": 9.0,
+    "hookWindowSeconds": 3,
+    "hookWindowFrames": 180,
+    "note": "Hard-cut rate (~9/min, measured: 3 cuts across the first 20s of the reference Short) is decoupled from and slower than caption-text cadence (new 1-3 word chunks every ~0.75-1.5s) -- per the moodboard's Motion/Pacing Notes. shotGrammar below maps this onto text/graphics-only primitives the same way the Mind Mosaic pilot adapted its own reference's beat structure (see docs/pilot-mind-mosaic-adaptation.md for the adaptation pattern being reused)."
+  },
+  "motionPersonality": {
+    "layoutVariance": "medium",
+    "motionIntensity": "medium-low",
+    "visualDensity": "medium-high",
+    "easingNote": "restrained ease-out tweens only, no spring/overshoot on caption pop-ins -- moodboard found no elastic/bounce entrance at 250ms sampling resolution, and the Dribbble dashboard reference's own project text calls for 'smooth, easy-to-follow animations.' Per the moodboard's explicit recommendation, the 'sharp, energetic' tone comes from caption density, cut selection, and copy -- not from exaggerated spring physics."
+  },
+  "shotGrammar": [
+    { "beat": "hook", "primitive": "KineticCaption", "accent": "captionEmphasis" },
+    { "beat": "concept_card", "primitive": "InfoCard", "accent": "calmInsight" },
+    { "beat": "bridge", "primitive": "KineticCaption", "accent": "lightnessEnergy" },
+    { "beat": "example", "primitive": "KenBurnsCard", "accent": "lightnessEnergy" },
+    { "beat": "explanation", "primitive": "KineticCaption", "accent": "calmInsight" },
+    { "beat": "mechanism", "primitive": "InfoCard", "accent": "tensionBias" },
+    { "beat": "conclusion", "primitive": "KineticCaption", "accent": "calmInsight" }
+  ]
+}
