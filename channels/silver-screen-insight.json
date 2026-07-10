@@ -1,0 +1,86 @@
+{
+  "slug": "silver-screen-insight",
+  "displayName": "Silver Screen Insight",
+  "niche": "film analysis, cinematic technique, cultural impact",
+  "tone": "cinephile, articulate, visually literate critic",
+  "sourceDocs": {
+    "moodboard": "research/visual-reference/silver-screen-insight.md",
+    "topicsVoiceMusic": "research/channels/silver-screen-insight-topics-voice-music.md"
+  },
+  "hookFormula": "hidden-meaning-or-technique-reveal",
+  "narrativeStructure": "symbolism-reveal-and-technique-breakdown",
+  "firecrawlQueryPatterns": [
+    "film analysis hidden meaning 2026",
+    "cinematography technique explained 2026",
+    "movie symbolism breakdown 2026"
+  ],
+  "voice": {
+    "engine": "piper",
+    "checkpoint": "en_US-libritts_r-medium",
+    "speakerId": 0,
+    "engineRepo": "OHF-Voice/piper1-gpl",
+    "engineLicense": "GPL-3.0 (engine, shelled-out-to as external process, not statically linked)",
+    "voiceFamily": "en_US-libritts_r",
+    "voiceLicense": "CC-BY 4.0 (LibriTTS-R dataset, attribution required per rhasspy/piper#271)",
+    "voiceLicenseNote": "This channel's own research doc (research/channels/silver-screen-insight-topics-voice-music.md) recommended en_US-lessac-medium as MIT, but that verification only checked the rhasspy/piper-voices collection-page badge and the ENGINE repo license -- not the lessac voice's own training-dataset license. Direct fetch of the lessac MODEL_CARD (https://huggingface.co/rhasspy/piper-voices/raw/main/en/en_US/lessac/medium/MODEL_CARD) points to the dataset license at https://www.cstr.ed.ac.uk/projects/blizzard/2013/lessac_blizzard2013/license.html, which is a 'RESEARCH LICENCE AGREEMENT' that explicitly excludes 'any commercial purpose, including the development, marketing, commercialisation, sale or licencing of voice synthesis or speech recognition products or services.' This confirms the Earthwise Everyday sibling-channel finding and directly contradicts this channel's own doc. Switched to en_US-libritts_r-medium (CC-BY 4.0, dataset-license-verified, independently confirmed commercial-safe by both mind-mosaic and earthwise-everyday research) instead.",
+    "note": "Multi-speaker model (904 speakers); pipeline pins default speaker id 0. Not yet auditioned by ear for 'articulate critic' tone fit -- operator should audition alternate speaker IDs before locking production voice, same open gap as mind-mosaic."
+  },
+  "music": {
+    "policy": "royalty-free-safe-default",
+    "note": "Research doc's Copyright Risk Flag explicitly leaves score/trailer-cue-style trending reuse vs. royalty-free library music as an operator decision, flagging that stem-separated trending film-score cues carry real Content ID risk for a high-upload automated pipeline. This build defaults to the safe (non-trending) path -- see pipeline music-bed generation for what is actually wired (a placeholder pad) vs. still a stub."
+  },
+  "sfx": {
+    "source": "@rse/soundfx (CC-0 / CC-BY-3.0), individual soundfx.d/*.mp3 files vendored locally",
+    "path": "soundfx.d/"
+  },
+  "visualTokens": {
+    "background": {
+      "explanationBase": "#0D0D0D",
+      "explanationBaseAlt": "#120D08",
+      "infographicCardBg": "#180E06"
+    },
+    "moodAccents": {
+      "calmInsight": { "primary": "#3B4C5C", "secondary": "#90857A" },
+      "lightnessEnergy": { "primary": "#CEA180", "secondary": "#956C3D" },
+      "tensionBias": { "primary": "#E72A00" }
+    },
+    "captionEmphasis": "#E72A00",
+    "captionDefault": "#FFFFFF",
+    "notes": "moodAccent KEY NAMES (calmInsight/lightnessEnergy/tensionBias) are inherited unchanged from the shared generic Explainer schema (src/remotion/types.ts AccentKey enum, which is a fixed 3-key zod object, not a per-channel dictionary) -- only the COLOR VALUES are Silver Screen Insight's own researched tokens, remapped semantically: calmInsight -> desaturated cool blue-grey (#3B4C5C/#90857A, PIL-sampled from the Midsommar analytical/diagram cutaways) for analytical beats; lightnessEnergy -> warm tungsten amber (#CEA180/#956C3D, PIL-sampled from the In Depth Cine footage) for film-still/quote beats; tensionBias -> hot red-orange (#E72A00, from the Awwwards 'Cinema Typography' scrape, echoed by the visually-observed arterial-red accent in the Midsommar clip) for reveal/verdict beats. Near-black canvas (#0D0D0D-#120D08) is the resting field per both reference clips and the Awwwards minimal-canvas reference."
+  },
+  "typography": {
+    "captionStyle": "heavy all-caps/title-case display bursts for hook/verdict lines (bold geometric sans, white fill, dark edge for legibility) plus a lighter-weight mixed-case annotation-label style for connective text, per Clip 2's two-tier caption hierarchy",
+    "captionFallbackFontStack": "'Archivo Black', 'Poppins', 'Montserrat', system-ui, sans-serif",
+    "captionRevealUnit": "2-4 word phrases for hook/verdict bursts, 1-3 word phrases for annotation labels",
+    "emphasisTier": "two-tier: default white, one hot red-orange (#E72A00) emphasized keyword per caption beat"
+  },
+  "spacing": {
+    "captionSafeZoneVerticalPct": [0.60, 0.78],
+    "infographicReveal": "staggered/incremental, one element per speech beat, not all-at-once",
+    "brollDensity": "one beat, one message -- never more than one headline caption and one annotation element simultaneously, per both reference clips"
+  },
+  "pacing": {
+    "fps": 60,
+    "referenceAvgShotLengthSeconds": 1.93,
+    "referenceAvgShotLengthFrames60fps": 116,
+    "referenceCutsPerMinute": 31.1,
+    "hookWindowSeconds": 3,
+    "hookWindowFrames": 180,
+    "note": "Reference range across the two downloaded clips is ~11-31 cuts/min (~116-323 frames@60fps per shot); this config targets the faster end (Clip 2, Lucas Blue Midsommar analysis, ~31.1 cuts/min) since that reveal-format pacing matches this channel's core hidden-meaning-reveal content, while shot-grammar beats mapped to KenBurnsCard preserve occasional longer holds for quote/clip moments as in Clip 1, per research/visual-reference/silver-screen-insight.md Motion-Personality Direction."
+  },
+  "motionPersonality": {
+    "layoutVariance": "medium",
+    "motionIntensity": "medium-high",
+    "visualDensity": "low-medium",
+    "easingNote": "fast ease-out entrances with low/no bounce or overshoot, matching the tight arrow-to-object binding observed in Clip 2 -- precise and controlled, not cartoonish, to stay consistent with the articulate-critic persona"
+  },
+  "shotGrammar": [
+    { "beat": "hook", "primitive": "KineticCaption", "accent": "captionEmphasis" },
+    { "beat": "concept_card", "primitive": "InfoCard", "accent": "tensionBias" },
+    { "beat": "bridge", "primitive": "KineticCaption", "accent": "captionEmphasis" },
+    { "beat": "example", "primitive": "KenBurnsCard", "accent": "lightnessEnergy" },
+    { "beat": "explanation", "primitive": "KineticCaption", "accent": "captionEmphasis" },
+    { "beat": "mechanism", "primitive": "InfoCard", "accent": "calmInsight" },
+    { "beat": "conclusion", "primitive": "KineticCaption", "accent": "captionEmphasis" }
+  ]
+}
