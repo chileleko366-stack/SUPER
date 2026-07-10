@@ -1,0 +1,87 @@
+{
+  "slug": "earthwise-everyday",
+  "displayName": "Earthwise Everyday",
+  "niche": "sustainability, eco-habits, low-waste living, environmental concepts",
+  "tone": "grounded, optimistic, practical eco-living communicator -- not preachy, not doom-oriented, not glossy-corporate-greenwash",
+  "sourceDocs": {
+    "moodboard": "research/visual-reference/earthwise-everyday.md",
+    "topicsVoiceMusic": "research/channels/earthwise-everyday-topics-voice-music.md"
+  },
+  "hookFormula": "numbered-tip-count-hook",
+  "narrativeStructure": "problem-to-practical-swap-payoff",
+  "firecrawlQueryPatterns": [
+    "sustainable living eco-friendly tips 2026",
+    "low-waste lifestyle swap trend 2026",
+    "eco-friendly habits sustainability tips 2026"
+  ],
+  "voice": {
+    "engine": "piper",
+    "checkpoint": "en_US-libritts_r-medium",
+    "speakerId": 0,
+    "engineRepo": "OHF-Voice/piper1-gpl",
+    "engineLicense": "GPL-3.0 (engine, shelled-out-to as external process, not statically linked)",
+    "voiceFamily": "en_US-libritts_r",
+    "voiceLicense": "CC BY 4.0 (LibriTTS-R dataset license per MODEL_CARD, explicitly permits commercial use with attribution)",
+    "voiceLicenseNote": "en_US-lessac explicitly avoided: its MODEL_CARD links a dataset license whose own header reads 'RESEARCH LICENCE AGREEMENT ... for Research Purposes only' -- not commercial-safe. en_US-amy-medium also avoided: fine-tuned from lessac with an unverified 'See URL' dataset license (Open Gap in research doc, not cleared). Caveat: libritts_r's own MODEL_CARD notes it was 'Fine-tuned from English lessac medium' as a training starting point even though its own distributed-checkpoint license is CC BY 4.0 -- flagged transparently, not glossed over.",
+    "note": "Measured locally this session on CPU, no GPU (Intel Core i3-4005U @ 1.70GHz, 4 logical CPUs): a real 142-word test script -> PiperVoice.load 17.2s + synthesis 21.7s = ~40.0s wall time, producing 37.0s of audio (mono, 22050Hz, research/frames_tmp/earthwise-everyday/piper_test/out.wav). Multi-speaker model (904 speakers per MODEL_CARD); speaker 0 used by default and reads as a neutral, clear American voice -- operator should audition alternate speaker IDs for the closest match to 'optimistic but grounded' before locking production voice (Open Gap in research doc, not yet done)."
+  },
+  "music": {
+    "policy": "royalty-free-safe-default",
+    "note": "Copyright Risk Flag in research doc: stem-separating a trending copyrighted track does not clear the underlying composition/master's copyright -- Content ID matches melodic/harmonic content, not just vocals, and repeated strikes risk the whole channel at automated multi-upload volume. Pilot defaults to the safe (properly-licensed royalty-free) path -- see pipeline's synthesize_music_bed() for what is actually wired for this pilot (a procedural placeholder pad) vs. still a stub for real sourced/licensed music. The trending-vs-royalty-free tradeoff remains an explicit operator decision per research doc, not resolved here."
+  },
+  "sfx": {
+    "source": "@rse/soundfx (CC-0 / CC-BY-3.0), individual soundfx.d/*.mp3 files vendored locally",
+    "path": "soundfx.d/"
+  },
+  "visualTokens": {
+    "background": {
+      "explanationBase": "#00130d",
+      "explanationBaseAlt": "#093027",
+      "infographicCardBg": "#2b2d32"
+    },
+    "moodAccents": {
+      "calmInsight": { "primary": "#136f57", "secondary": "#f0ede8" },
+      "lightnessEnergy": { "primary": "#98c991", "secondary": "#e0f1da" },
+      "tensionBias": { "primary": "#efbf4a" }
+    },
+    "captionEmphasis": "#49cfaa",
+    "captionDefault": "#FFFFFF",
+    "notes": "All hexes are real PIL-measured swatches from the moodboard's three downloaded Dribbble stills (Ecovise: #00130d/#093027/#136f57/#49cfaa; EcoSun: #f0ede8/#2b2d32/#efbf4a; Crypto-eco: #98c991/#e0f1da), reused across the shared schema's fixed AccentKey slots (calmInsight/lightnessEnergy/tensionBias -- these three names are a hardcoded zod enum in src/remotion/types.ts, not channel-invented). calmInsight = the deep teal-green grounded/narrative color; lightnessEnergy = the softer sage-green 'lightness' accent; tensionBias = the one amber-gold saturated pop reserved for the mechanism/attention beat. captionEmphasis reuses the mint-teal accent so it reads distinctly from tensionBias's amber-gold. The moodboard's real-world UGC palette (warm greige/taupe neutrals, no brand-green at all) is deliberately NOT used for these graphic/on-screen tokens per the moodboard's own recommendation to reserve brand-green/teal/amber for graphic elements and let B-roll stay in the neutral UGC register -- this pipeline's KenBurnsCard b-roll is a procedurally generated card, not real photography, so that UGC-neutral nuance isn't separately wired here (see Known Open Gaps in VERIFICATION.md)."
+  },
+  "typography": {
+    "captionStyle": "heavy-weight condensed-neutral grotesque sans-serif, white text with dark outline/drop-shadow for legibility over variable backgrounds -- the standard high-contrast Shorts-caption treatment observed in the reference contact sheet; numeral list-count anchors (e.g. '5') rendered at roughly 2x scale as a visual anchor when present",
+    "captionFallbackFontStack": "'Oswald', 'Archivo Black', 'Poppins', system-ui, sans-serif",
+    "captionRevealUnit": "1-3 word phrases, ~1-2s cadence (reused default from the shared KineticCaption primitive convention; NOT independently measured for this channel -- the moodboard's one downloaded/measured video reference uses static title-card captions, not kinetic word-by-word reveal, so no direct cadence measurement exists for this niche, see moodboard Open Gaps)",
+    "emphasisTier": "two-tier: default white, one mint-teal (#49cfaa) emphasized keyword per caption beat"
+  },
+  "spacing": {
+    "captionSafeZoneVerticalPct": [0.08, 0.22],
+    "note": "Grounded in the moodboard's measured UGC contact-sheet finding that captions sit inside the top ~20% of frame, leaving the bottom safe zone (platform UI overlay area) clear -- this is the OPPOSITE vertical placement convention from the Mind Mosaic pilot (which used a lower-middle safe zone). Flagged honestly: this spacing block, like typography/pacing/motionPersonality below, follows channels/mind-mosaic.json's schema shape for research documentation but is not currently read by pipeline/run_channel.py or src/remotion (confirmed by inspection -- TokensSchema in src/remotion/types.ts has no spacing field), so the shared KineticCaption primitive's actual on-screen caption position is whatever is hardcoded in that primitive today, not driven by this value yet.",
+    "infographicReveal": "staggered/incremental, one element per speech beat, not all-at-once (shared InfoCard primitive behavior, unchanged)",
+    "brollDensity": "single-subject (hand+product framing convention), minimal on-screen text during pure b-roll beats, generous negative space -- per moodboard's 'one focal subject, avoid stacking multiple graphic elements' finding"
+  },
+  "pacing": {
+    "fps": 60,
+    "referenceAvgShotLengthSeconds": 8.0,
+    "referenceAvgShotLengthFrames60fps": 480,
+    "referenceCutsPerMinute": 7.0,
+    "hookWindowSeconds": 4,
+    "hookWindowFrames": 240,
+    "note": "Measured from the moodboard's one downloaded/frame-analyzed YouTube Short (46.78s, native 30fps, 360x640): a ~4s title-card open, then 5 'swap' segments each running roughly 6-10s (midpoint ~8s used here), each internally hard-cut every ~2-3s to a different angle of the same product. referenceCutsPerMinute here reflects the SEGMENT-level cadence (~5 segments over ~43.6s of post-title content, approx. 60/8.0 = 7.0 cuts/min), not the faster internal within-segment cut rate, since the shared Explainer composition's beats map to segment-level Sequence boundaries, not sub-segment cuts. All transitions in the reference are hard cuts -- no wipes/zoom-punches/speed-ramps -- matching this pipeline's hard-cut-only Sequence-boundary architecture with no extra work needed."
+  },
+  "motionPersonality": {
+    "layoutVariance": "low-to-moderate",
+    "motionIntensity": "low",
+    "visualDensity": "low-to-moderate",
+    "easingNote": "Per moodboard's Motion/Pacing Notes (citing motion.dev's documented easing set, since no LottieFiles/Motion.dev skill was available): default to easeOut/easeInOut and gentle duration-based springs; reserve backOut/anticipate overshoot for rare single-beat emphasis (e.g. a number counting up), never for routine cuts. Avoid bounce/overshoot generally -- matches the calm, uncluttered register observed in every actual reference in this niche (both the branded Dribbble stills and the UGC Short)."
+  },
+  "shotGrammar": [
+    { "beat": "hook", "primitive": "KineticCaption", "accent": "captionEmphasis" },
+    { "beat": "concept_card", "primitive": "InfoCard", "accent": "calmInsight" },
+    { "beat": "bridge", "primitive": "KineticCaption", "accent": "lightnessEnergy" },
+    { "beat": "example", "primitive": "KenBurnsCard", "accent": "lightnessEnergy" },
+    { "beat": "explanation", "primitive": "KineticCaption", "accent": "calmInsight" },
+    { "beat": "mechanism", "primitive": "InfoCard", "accent": "tensionBias" },
+    { "beat": "conclusion", "primitive": "KineticCaption", "accent": "calmInsight" }
+  ]
+}
