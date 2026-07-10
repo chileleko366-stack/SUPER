@@ -4,6 +4,9 @@ import type { ExplainerProps } from "./types";
 import { KineticCaption } from "./primitives/KineticCaption";
 import { InfoCard } from "./primitives/InfoCard";
 import { KenBurnsCard } from "./primitives/KenBurnsCard";
+import { TimelineReveal } from "./primitives/TimelineReveal";
+import { DataChart } from "./primitives/DataChart";
+import { CodeBlock } from "./primitives/CodeBlock";
 import { AudioMix } from "./audio/AudioMix";
 
 /**
@@ -52,6 +55,35 @@ export const ExplainerComposition: React.FC<ExplainerProps> = ({
                 <KenBurnsCard
                   imageSrc={seg.imageSrc}
                   caption={seg.text}
+                  accent={seg.accent}
+                  tokens={tokens}
+                  durationInFrames={seg.durationInFrames}
+                />
+              )}
+              {seg.primitive === "TimelineReveal" && seg.timelineEvents && (
+                <TimelineReveal
+                  text={seg.text}
+                  emphasisWord={seg.emphasisWord}
+                  timelineEvents={seg.timelineEvents}
+                  accent={seg.accent}
+                  tokens={tokens}
+                  durationInFrames={seg.durationInFrames}
+                />
+              )}
+              {seg.primitive === "DataChart" && seg.chartData && (
+                <DataChart
+                  headline={seg.text}
+                  data={seg.chartData}
+                  accent={seg.accent}
+                  tokens={tokens}
+                  durationInFrames={seg.durationInFrames}
+                />
+              )}
+              {seg.primitive === "CodeBlock" && seg.codeLines && (
+                <CodeBlock
+                  title={seg.text}
+                  codeLines={seg.codeLines}
+                  language={seg.language}
                   accent={seg.accent}
                   tokens={tokens}
                   durationInFrames={seg.durationInFrames}

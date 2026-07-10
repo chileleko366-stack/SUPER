@@ -7,6 +7,20 @@ Parameterized by --channel so it is reusable across all 10 channels, not
 Mind-Mosaic-specific -- per Phase 7 pilot instructions. Channel-specific
 behavior (tokens, voice, shot grammar) all comes from channels/<slug>.json,
 not from code branches on the channel name.
+
+DataChart accuracy handling (deliberate choice, documented rather than
+hidden): NVIDIA NIM is not a reliable source of real-time financial/economic
+figures. This pipeline does NOT ask NIM for "real" numbers and does not
+scrape a second factual source per topic to back-fill DataChart beats
+either (that's a real, disclosed gap -- see each channel's VERIFICATION.md).
+Instead, the script-generation prompt (see `build_script_prompt`'s
+`chart_note`) explicitly instructs NIM to produce clearly-illustrative
+EXAMPLE figures for teaching a concept (e.g. "if you save $50/month..."
+style hypothetical math), and to phrase the spoken line so a viewer
+understands the numbers are illustrative, not reported statistics.
+`resolve_chart_data` then validates structure (labels + numeric values)
+but cannot and does not verify factual accuracy -- illustrative-by-design,
+not fabricated-and-passed-off-as-real.
 """
 import argparse
 import json
@@ -51,15 +65,114 @@ SCRIPT_SYSTEM_PROMPT = """You write short-form (45-70 second) faceless YouTube S
 Voice/tone is set by the operator. Output ONLY valid JSON, no prose, no markdown fences.
 Every beat's "text" field is a short spoken line (8-20 words) suitable for text-to-speech
 narration and on-screen kinetic captions -- not a written essay. Beats with "traits" get
-3 short (1-4 word) keyword/phrase items, not full sentences."""
+3 short (1-4 word) keyword/phrase items, not full sentences. Beats with "timelineEvents"
+get 3 to 5 objects, each with a short (1-4 word) "label" and a "date" field holding a
+REAL, historically plausible year/date for the actual topic being scripted, in correct
+chronological order -- these are read by a downstream renderer as literal on-screen date
+badges, so invented, anachronistic, or internally-inconsistent dates are a hard failure,
+not a stylistic choice. If you are not confident of an exact year, use the most
+specific date range that is still historically defensible (e.g. "c. 1289" or "1450s")
+rather than fabricating false precision. You do not have access to real-time data. For
+any beat requiring "chartData", invent clearly-illustrative EXAMPLE numbers to teach a
+concept (e.g. simple hypothetical savings/growth math) -- never invent numbers and
+present them as real reported statistics. Beats with "codeLines" get a real, syntactically
+correct, runnable code snippet -- you are a careful software engineer writing this
+snippet, not improvising fake syntax. Double-check indentation, matching brackets/parens,
+and correct keyword spelling for the language you choose before answering."""
+
+CODE_BLOCK_GUIDANCE = (
+    ' Also include "codeLines": an array of 6-10 short lines (each under 46 characters, '
+    "using 2-space indentation, no tabs) of a real, syntactically correct, working code "
+    "snippet in a well-known mainstream language (Python or JavaScript preferred) that "
+    "implements a simple, well-known algorithm or pattern relevant to the topic (e.g. a "
+    "classic sort, a common one-liner, a basic data-structure operation). Do not invent "
+    'syntax; write only code you are confident actually compiles/runs. Also include '
+    '"language": the lowercase language name (e.g. "python", "javascript"). "text" for '
+    "this beat is still a short spoken line (6-10 words, e.g. \"Here's binary search in "
+    "six lines of Python\") -- it is read aloud by TTS AND shown as the on-screen snippet "
+    "title, so keep it short enough to fit one line."
+)
+
+
+def _example_for_beat(beat_cfg: dict) -> dict:
+    """Builds an illustrative example object for one beat, shaped by its
+    primitive (and, for two conventional beat names with no distinguishing
+    primitive of their own, by beat name) -- keeps the prompt's example JSON
+    in sync with whatever beat names/primitives a channel actually
+    configures (channels/<slug>.json), instead of hardcoding one channel's
+    beat names into every prompt."""
+    beat, primitive = beat_cfg["beat"], beat_cfg["primitive"]
+    example: dict = {"text": "short spoken line, 8-20 words"}
+
+    if primitive == "InfoCard":
+        example["text"] = "short headline"
+        example["traits"] = ["kw1", "kw2", "kw3"]
+    elif primitive == "KenBurnsCard":
+        example["text"] = "short caption for a b-roll still"
+    elif primitive == "TimelineReveal":
+        example["emphasisWord"] = "onewordfromtext"
+        example["timelineEvents"] = [
+            {"label": "short event name", "date": "a real plausible year, e.g. 1289"},
+            {"label": "short event name", "date": "a later real plausible year"},
+            {"label": "short event name", "date": "a later real plausible year"},
+        ]
+    elif primitive == "DataChart":
+        example["text"] = (
+            "spoken line that clearly frames the numbers as an illustrative example, "
+            "e.g. 'say you save $50 a month' -- NOT a claimed real statistic"
+        )
+        example["chartData"] = [
+            {"label": "Month 1", "value": 50},
+            {"label": "Month 6", "value": 300},
+            {"label": "Month 12", "value": 600},
+        ]
+    elif primitive == "CodeBlock":
+        example["text"] = "Here's binary search in six lines"
+        example["language"] = "python"
+        example["codeLines"] = [
+            "def binary_search(arr, target):",
+            "  lo, hi = 0, len(arr) - 1",
+            "  while lo <= hi:",
+            "    mid = (lo + hi) // 2",
+            "    if arr[mid] == target:",
+            "      return mid",
+            "    if arr[mid] < target:",
+            "      lo = mid + 1",
+            "    else:",
+            "      hi = mid - 1",
+            "  return -1",
+        ]
+    elif beat == "hook":
+        example["emphasisWord"] = "onewordfromtext"
+    elif beat == "conclusion":
+        example["text"] = "actionable one-line takeaway"
+
+    return example
 
 
 def build_script_prompt(channel: dict, topic: dict) -> str:
     beats = channel["shotGrammar"]
     beat_desc = "\n".join(
-        f'- beat "{b["beat"]}" (primitive: {b["primitive"]})' for b in beats
+        f'- beat "{b["beat"]}" (primitive: {b["primitive"]})'
+        + (CODE_BLOCK_GUIDANCE if b["primitive"] == "CodeBlock" else "")
+        for b in beats
     )
-    schema_fields = ", ".join(f'"{b["beat"]}"' for b in beats)
+    example = {b["beat"]: _example_for_beat(b) for b in beats}
+    example_json = json.dumps(example, indent=2)
+
+    chart_note = ""
+    if any(b["primitive"] == "DataChart" for b in beats):
+        chart_note = """
+
+IMPORTANT for any beat with primitive DataChart: you do not have access to real,
+current financial/economic data. Do NOT invent numbers and present them as real
+statistics. Produce clearly-illustrative EXAMPLE figures that teach the underlying
+concept (e.g. hypothetical "if you save $X a month" math, a simple made-up
+before/after comparison, or round illustrative percentages), 3-5 chartData points,
+and make the spoken "text" for that beat say something like "let's say" / "for
+example" / "imagine" so viewers understand these are illustrative numbers, not
+reported real-world data."""
+
     return f"""Channel: {channel['displayName']} -- {channel['niche']}
 Tone: {channel['tone']}
 Hook formula: {channel['hookFormula']}
@@ -72,26 +185,54 @@ URL: {topic['url']}
 
 Write a script with exactly these beats, in this order:
 {beat_desc}
+{chart_note}
 
-Return JSON with this exact shape (keys: {schema_fields}):
-{{
-  "hook": {{"text": "...", "emphasisWord": "onewordfromtext"}},
-  "concept_card": {{"text": "short headline", "traits": ["kw1", "kw2", "kw3"]}},
-  "bridge": {{"text": "..."}},
-  "example": {{"text": "short caption for a b-roll still"}},
-  "explanation": {{"text": "..."}},
-  "mechanism": {{"text": "short headline", "traits": ["kw1", "kw2", "kw3"]}},
-  "conclusion": {{"text": "actionable one-line takeaway"}}
-}}"""
+Return JSON with exactly this shape (the values below are illustrative
+placeholders describing what each field is for -- replace every one with
+real content written for the topic above):
+{example_json}"""
 
 
 def generate_script(channel: dict, topic: dict) -> dict:
     prompt = build_script_prompt(channel, topic)
-    return nim_client.generate_json(SCRIPT_SYSTEM_PROMPT, prompt)
+    has_code_beat = any(b["primitive"] == "CodeBlock" for b in channel["shotGrammar"])
+    max_tokens = 1300 if has_code_beat else 900
+    return nim_client.generate_json(SCRIPT_SYSTEM_PROMPT, prompt, max_tokens=max_tokens)
 
 
 def resolve_accent(beat_cfg: dict) -> str:
     return beat_cfg["accent"]
+
+
+def resolve_chart_data(beat_script: dict, beat: str) -> list[dict]:
+    """Validates the NIM-produced chartData for a DataChart beat. This is
+    the one enforcement point standing between "NIM hallucinated a number"
+    and it silently landing on screen as a rendered chart: every point must
+    have a real label and a numeric value, and there must be at least 2
+    points, or the pipeline fails loudly instead of rendering a broken/empty
+    chart. It does NOT and cannot verify the numbers are factually accurate
+    -- see the DataChart accuracy-handling note in run_channel.py's module
+    docstring and each channel's VERIFICATION.md for why illustrative
+    figures (not claimed real data) are this pipeline's chosen approach."""
+    raw = beat_script.get("chartData")
+    if not isinstance(raw, list) or len(raw) < 2:
+        raise RuntimeError(
+            f"NIM script missing usable chartData for DataChart beat '{beat}' "
+            f"(need a list of >=2 {{label, value}} points, got {raw!r})"
+        )
+    out = []
+    for item in raw:
+        if not isinstance(item, dict):
+            raise RuntimeError(f"NIM chartData item for beat '{beat}' is not an object: {item!r}")
+        label = str(item.get("label", "")).strip()
+        if not label:
+            raise RuntimeError(f"NIM chartData item for beat '{beat}' missing a label: {item!r}")
+        try:
+            value = float(item["value"])
+        except (KeyError, TypeError, ValueError):
+            raise RuntimeError(f"NIM chartData item for beat '{beat}' has a non-numeric value: {item!r}")
+        out.append({"label": label, "value": value})
+    return out
 
 
 def synthesize_vo(text: str, channel: dict, out_wav: Path) -> float:
@@ -186,6 +327,18 @@ def run(channel_slug: str, run_id: str | None = None) -> Path:
             seg["emphasisWord"] = beat_script["emphasisWord"]
         if "traits" in beat_script:
             seg["traits"] = beat_script["traits"]
+        if beat_cfg["primitive"] == "CodeBlock":
+            code_lines = beat_script.get("codeLines") or []
+            if not code_lines:
+                raise RuntimeError(f"NIM script missing codeLines for CodeBlock beat '{beat}'")
+            seg["codeLines"] = code_lines
+            seg["language"] = beat_script.get("language", "")
+            # A code beat needs enough hold time to read every revealed line,
+            # not just enough time for the (short) spoken title -- floor it at
+            # ~0.9s/line on top of the VO-derived duration.
+            code_floor_frames = math.ceil(len(code_lines) * 0.9 * FPS) + 30
+            duration_frames = max(duration_frames, code_floor_frames)
+            seg["durationInFrames"] = duration_frames
         if beat_cfg["primitive"] == "KenBurnsCard":
             accent_hex = (
                 channel["visualTokens"]["moodAccents"][seg["accent"]].get("primary")
@@ -196,6 +349,19 @@ def run(channel_slug: str, run_id: str | None = None) -> Path:
                 text, accent_hex, channel["visualTokens"]["background"]["explanationBase"], img_abs
             )
             seg["imageSrc"] = f"generated/{channel_slug}/{run_id}/{img_rel}"
+        if beat_cfg["primitive"] == "TimelineReveal":
+            events = beat_script.get("timelineEvents")
+            if not events or len(events) < 2:
+                raise RuntimeError(
+                    f"NIM script missing/insufficient timelineEvents for beat '{beat}' "
+                    f"(TimelineReveal needs at least 2 dated events, got {events!r})"
+                )
+            for ev in events:
+                if not ev.get("label") or not ev.get("date"):
+                    raise RuntimeError(f"NIM timelineEvents entry missing label/date in beat '{beat}': {ev!r}")
+            seg["timelineEvents"] = events
+        if beat_cfg["primitive"] == "DataChart":
+            seg["chartData"] = resolve_chart_data(beat_script, beat)
 
         segments.append(seg)
         print(f"      [{beat}] {duration_s:.2f}s -> {duration_frames}f  \"{text[:60]}\"")
@@ -213,13 +379,26 @@ def run(channel_slug: str, run_id: str | None = None) -> Path:
     music_rel = "audio/music_bed.wav"
     synthesize_music_bed(public_dir / music_rel, total_duration_s)
 
+    # DataChart's motion (calm ease-out vs. energetic spring-overshoot) is
+    # driven by the channel's own motionPersonality.motionIntensity research
+    # finding, not hardcoded -- "high"/"medium-high" opts into the
+    # spring/overshoot data-reveal treatment; anything else keeps the
+    # no-bounce default every other primitive in this pipeline uses.
+    motion_intensity = channel.get("motionPersonality", {}).get("motionIntensity", "").lower()
+    chart_motion = "energetic" if "high" in motion_intensity else "calm"
+
     tokens = {
         "background": channel["visualTokens"]["background"],
         "moodAccents": channel["visualTokens"]["moodAccents"],
         "captionEmphasis": channel["visualTokens"]["captionEmphasis"],
         "captionDefault": channel["visualTokens"]["captionDefault"],
         "fontStack": channel["typography"]["captionFallbackFontStack"],
+        "chartMotion": chart_motion,
     }
+    # Optional: only channels using TimelineReveal (e.g. Echoes of Ages)
+    # define this block in visualTokens.
+    if "timeline" in channel["visualTokens"]:
+        tokens["timeline"] = channel["visualTokens"]["timeline"]
 
     props = {
         "channelSlug": channel_slug,
