@@ -1,0 +1,86 @@
+{
+  "slug": "thought-tides",
+  "displayName": "Thought Tides",
+  "niche": "philosophy, ethics, classic and modern schools of thought",
+  "tone": "contemplative, calm, thought-provoking philosophy communicator",
+  "sourceDocs": {
+    "moodboard": "research/visual-reference/thought-tides.md",
+    "topicsVoiceMusic": "research/channels/thought-tides-topics-voice-music.md"
+  },
+  "hookFormula": "quoted-or-paraphrased-primary-source-line",
+  "narrativeStructure": "single-thinker-or-school-framing-practical-close",
+  "firecrawlQueryPatterns": [
+    "stoicism philosophy shorts 2026",
+    "existentialism absurdism explainer 2026",
+    "alan watts meaning of life philosophy 2026"
+  ],
+  "voice": {
+    "engine": "piper",
+    "checkpoint": "en_US-libritts_r-medium",
+    "speakerId": 0,
+    "engineRepo": "OHF-Voice/piper1-gpl",
+    "engineLicense": "GPL-3.0 (engine, shelled-out-to as external process, not statically linked)",
+    "voiceFamily": "en_US-libritts_r",
+    "voiceLicense": "CC-BY (attribution required per rhasspy/piper#271)",
+    "voiceLicenseNote": "This channel's own research doc (thought-tides-topics-voice-music.md) recommended Piper as the engine but did NOT pin a specific checkpoint -- flagged there as an Open Gap requiring the operator to browse huggingface.co/rhasspy/piper-voices and audition a slower, measured en_US/en_GB male voice for this contemplative persona. en_US-libritts_r-medium is used here as the safe default because it is independently confirmed commercial-safe (CC-BY) by two other channels' research (see mind-mosaic.json), not because this channel's own doc pinned it.",
+    "note": "speakerId 0 is an unaudited default within the LibriTTS_R multi-speaker checkpoint -- per this channel's own research doc, the operator should audition alternate speaker IDs for a 'slower, measured delivery' male voice fit before locking production voice. Not auditioned by ear in this pass (no audio-playback capability available), consistent with the task's 'do not over-invest in checkpoint selection' guidance."
+  },
+  "music": {
+    "policy": "royalty-free-safe-default",
+    "note": "thought-tides-topics-voice-music.md's Copyright Risk Flag leaves trending-vs-royalty-free as an explicit operator decision (trending audio boosts discovery but carries Content ID/strike risk on an automated multi-video channel; royalty-free/YouTube Audio Library is safer but more generic). This config defaults to the safe (non-trending) path -- see pipeline/run_channel.py synthesize_music_bed() for what is actually wired (a procedural placeholder pad, not a sourced track)."
+  },
+  "sfx": {
+    "source": "@rse/soundfx (CC-0 / CC-BY-3.0), individual soundfx.d/*.mp3 files vendored locally",
+    "path": "soundfx.d/"
+  },
+  "visualTokens": {
+    "background": {
+      "explanationBase": "#000000",
+      "explanationBaseAlt": "#101010",
+      "infographicCardBg": "#001020"
+    },
+    "moodAccents": {
+      "calmInsight": { "primary": "#4D8CCB", "secondary": "#DDE6EE" },
+      "lightnessEnergy": { "primary": "#CB774D", "secondary": "#F0E2DB" },
+      "tensionBias": { "primary": "#4D4DCB" }
+    },
+    "captionEmphasis": "#74ADE7",
+    "captionDefault": "#FFFFFF",
+    "notes": "Extracted Color Tokens in the moodboard (research/visual-reference/thought-tides.md) are literal per-frame dominant colors: a near-black base (#000000/#101010/#202020) plus a cool teal/blue family (#001020, #000010 -- night sky / ocean-at-dusk shots) and a warm tan/olive family (#907060, #605030 -- candlelit / golden-hour shots). Those raw hexes are all too dark to read as legible accent-text colors on a near-black canvas, so moodAccents/captionEmphasis above are hue-preserving lightened variants of those SAME extracted hues (computed via HSL, hue held constant, lightness/saturation raised for legibility) -- not invented colors and not copied from another channel. calmInsight and captionEmphasis both derive from the #001020 cool-teal family (fitting, given the channel name); lightnessEnergy derives from the #907060 warm-tan family; tensionBias derives from the deeper #000010 cool blue-violet family (the 'night cityscape' shots), used for the mechanism/counterpoint beat. The reference clip itself shows only a SINGLE caption color tier (plain white, no second emphasized-word color observed) -- captionEmphasis here is a deliberate extension of the shared primitive's built-in two-tier emphasis system using an extraction-grounded hue, not a literally observed source color. Flagged here and in VERIFICATION.md rather than silently presented as an observed token."
+  },
+  "typography": {
+    "captionStyle": "bold condensed all-caps grotesk/impact-style sans (visual impression only, exact family not verified per moodboard Open Gaps -- consistent with Neue Haas Grotesk-tagged Dribbble references)",
+    "captionFallbackFontStack": "'Anton', 'Bebas Neue', 'Oswald', system-ui, sans-serif",
+    "captionRevealUnit": "reference clip shows short 3-6 word caption cards chunked to narration phrasing, one card at a time, no stacked lines; the shared KineticCaption primitive reveals an entire beat's script text word-by-word within a single beat instead of re-chunking into 3-6 word cards -- a known reuse gap (primitive not modified per pilot instructions), documented in VERIFICATION.md rather than hidden",
+    "emphasisTier": "reference clip observed only ONE caption tier (solid white, no hierarchy/size variation); captionEmphasis token above is a primitive-compatibility extension, not an observed second tier -- see visualTokens.notes"
+  },
+  "spacing": {
+    "captionSafeZoneVerticalPct": [0.60, 0.75],
+    "infographicReveal": "staggered/incremental, one element per speech beat, not all-at-once (shared InfoCard behavior, not independently observed in this niche's reference clip which has no InfoCard-equivalent shot)",
+    "brollDensity": "single-subject, near-zero on-screen text during pure b-roll beats -- matches moodboard's 'no icons/lower-third/graphic overlays observed' finding"
+  },
+  "pacing": {
+    "fps": 60,
+    "referenceAvgShotLengthSeconds": 5.2,
+    "referenceAvgShotLengthFrames60fps": 312,
+    "referenceCutsPerMinute": 11.5,
+    "hookWindowSeconds": 3,
+    "hookWindowFrames": 180,
+    "note": "Reference clip's average shot length (~5.2s, ~11.5 cuts/min, computed from real scene-cut detection, see moodboard Motion/Pacing Notes) is faster than a purely meditative pace but well below high-arousal hyper-cut Shorts formats -- mid pace recommended as starting point: enough movement to hold attention, slow enough to let a line of philosophy land before the cut."
+  },
+  "motionPersonality": {
+    "layoutVariance": "low",
+    "motionIntensity": "low-to-moderate",
+    "visualDensity": "low",
+    "easingNote": "no bounce/overshoot; simple fade/short-ease caption in/out (easeOut/easeInOut per Motion.dev vocabulary, https://motion.dev/docs/easing-functions), consistent with the shared primitives' existing ease-out-cubic entrances -- matches moodboard's 'avoid punchy spring-overshoot typography moves' finding for a contemplative register."
+  },
+  "shotGrammar": [
+    { "beat": "hook", "primitive": "KineticCaption", "accent": "calmInsight" },
+    { "beat": "concept_card", "primitive": "InfoCard", "accent": "calmInsight" },
+    { "beat": "bridge", "primitive": "KineticCaption", "accent": "lightnessEnergy" },
+    { "beat": "example", "primitive": "KenBurnsCard", "accent": "lightnessEnergy" },
+    { "beat": "explanation", "primitive": "KineticCaption", "accent": "calmInsight" },
+    { "beat": "mechanism", "primitive": "InfoCard", "accent": "tensionBias" },
+    { "beat": "conclusion", "primitive": "KineticCaption", "accent": "calmInsight" }
+  ]
+}
