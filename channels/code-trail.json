@@ -1,0 +1,82 @@
+{
+  "slug": "code-trail",
+  "displayName": "Code Trail",
+  "niche": "programming, algorithms, project builds",
+  "tone": "crisp, technical, dev-to-dev",
+  "sourceDocs": {
+    "moodboard": "research/visual-reference/code-trail.md",
+    "topicsVoiceMusic": "research/channels/code-trail-topics-voice-music.md"
+  },
+  "hookFormula": "trending-tool-reveal",
+  "narrativeStructure": "hook-context-code-payoff",
+  "firecrawlQueryPatterns": [
+    "github trending repository today 2026",
+    "new open source AI coding agent tool github 2026",
+    "trending developer tool github stars 2026"
+  ],
+  "voice": {
+    "engine": "piper",
+    "checkpoint": "en_US-ryan-high",
+    "speakerId": null,
+    "engineRepo": "OHF-Voice/piper1-gpl",
+    "engineLicense": "GPL-3.0 (engine, shelled-out-to as external process, not statically linked); original rhasspy/piper (MIT) is archived read-only as of Oct 2025",
+    "voiceFamily": "en_US-ryan-high",
+    "voiceLicense": "MIT (rhasspy/piper-voices MODEL_CARD, per research doc -- not re-verified by direct MODEL_CARD fetch, flagged as Open Gap in research/channels/code-trail-topics-voice-music.md)",
+    "note": "en_US-lessac-high is the documented fallback in the same MIT-licensed family if Ryan's tone doesn't land in production auditioning."
+  },
+  "music": {
+    "policy": "royalty-free-safe-default",
+    "note": "Copyright Risk Flag in research doc leaves trending-vs-royalty-free as an explicit operator decision (same framing as mind-mosaic). Pipeline currently only wires a synthesized placeholder pad, not a sourced track -- see synthesize_music_bed() in pipeline/run_channel.py."
+  },
+  "sfx": {
+    "source": "@rse/soundfx (CC-0 / CC-BY-3.0), individual soundfx.d/*.mp3 files vendored locally",
+    "path": "soundfx.d/"
+  },
+  "visualTokens": {
+    "background": {
+      "explanationBase": "#0B0B0B",
+      "explanationBaseAlt": "#121212",
+      "infographicCardBg": "#1E1F17"
+    },
+    "moodAccents": {
+      "calmInsight": { "primary": "#35935B", "secondary": "#FFFFFF" },
+      "lightnessEnergy": { "primary": "#757E1C", "secondary": "#445F09" },
+      "tensionBias": { "primary": "#940D00" }
+    },
+    "captionEmphasis": "#20009E",
+    "captionDefault": "#FFFFFF",
+    "notes": "All hex values sampled directly from research/visual-reference/code-trail.md's Extracted Color Tokens table (PIL-sampled frames of the downloaded thebrainmaze sorting-algorithm reference clip), not invented. captionEmphasis (#20009E, saturated violet-blue) is the highest-hue-band sample in that table; moodboard explicitly notes 'no secondary/tertiary brand color -- all color budget goes into the data itself,' so emphasis/keyword-tint colors deliberately reuse the same hue-sweep palette as the mood accents rather than introducing a new brand color."
+  },
+  "typography": {
+    "captionStyle": "clean humanist/grotesk UI sans, medium weight, mixed/Title Case (not all-caps) -- exact family unverified per moodboard Open Gap",
+    "captionFallbackFontStack": "'Inter', 'IBM Plex Sans', system-ui, sans-serif",
+    "codeFontStack": "'JetBrains Mono', 'Fira Code', 'Consolas', monospace",
+    "captionRevealUnit": "word-by-word for KineticCaption beats; line-by-line for CodeBlock beats",
+    "emphasisTier": "two-tier: default white body text, one saturated violet-blue (#20009E) emphasized keyword/token per caption or code beat"
+  },
+  "spacing": {
+    "captionSafeZoneVerticalPct": [0.60, 0.78],
+    "codeCardMaxWidthPx": 940,
+    "infographicReveal": "staggered/incremental, one element per speech beat, not all-at-once",
+    "brollDensity": "moderate-to-high per moodboard: one persistent dashboard-chrome element (here: CodeBlock's header row) plus one large focal visualization, two-layer density ceiling"
+  },
+  "pacing": {
+    "fps": 60,
+    "note": "Platform composition FPS is fixed at 60 (src/remotion/Root.tsx), independent of the moodboard reference clip's own 30fps source -- same fixed-60fps convention used by mind-mosaic. Reference clip measured 0 cuts across 121s (continuous single-shot); adapted target for Shorts-native pacing here is a new visual beat roughly every 2-4s, per moodboard Motion-Personality Direction, not the reference's own ~25-30s macro-beat cadence."
+  },
+  "motionPersonality": {
+    "layoutVariance": "low-to-moderate",
+    "motionIntensity": "moderate",
+    "visualDensity": "moderate-to-high",
+    "easingNote": "simple eased transitions (easeOut/easeInOut) throughout, no bounce/overshoot spring moves -- reserved only for a single hook-moment punch at video start, per moodboard Motion-Personality Direction. Continuous micro-motion (slow hue-cycle) used for chrome accents only, not body/code text, to preserve legibility."
+  },
+  "shotGrammar": [
+    { "beat": "hook", "primitive": "KineticCaption", "accent": "tensionBias" },
+    { "beat": "concept_card", "primitive": "InfoCard", "accent": "calmInsight" },
+    { "beat": "bridge", "primitive": "KineticCaption", "accent": "lightnessEnergy" },
+    { "beat": "code_demo", "primitive": "CodeBlock", "accent": "calmInsight" },
+    { "beat": "explanation", "primitive": "KineticCaption", "accent": "calmInsight" },
+    { "beat": "mechanism", "primitive": "InfoCard", "accent": "tensionBias" },
+    { "beat": "conclusion", "primitive": "KineticCaption", "accent": "calmInsight" }
+  ]
+}
