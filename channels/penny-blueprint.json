@@ -1,0 +1,86 @@
+{
+  "slug": "penny-blueprint",
+  "displayName": "Penny Blueprint",
+  "niche": "budgeting, investing, taxes, debt reduction, practical wealth-building",
+  "tone": "practical, trustworthy, no-hype personal finance -- not aspirational fintech marketing, not shouty get-rich-quick content",
+  "sourceDocs": {
+    "moodboard": "research/visual-reference/penny-blueprint.md",
+    "topicsVoiceMusic": "research/channels/penny-blueprint-topics-voice-music.md"
+  },
+  "hookFormula": "numbered-actionable-tip",
+  "narrativeStructure": "tip-then-worked-example",
+  "firecrawlQueryPatterns": [
+    "budgeting tips 2026",
+    "loud budgeting personal finance trend 2026",
+    "emergency fund debt payoff money plan 2026"
+  ],
+  "voice": {
+    "engine": "kokoro",
+    "checkpoint": "af_heart",
+    "langCode": "a",
+    "engineRepo": "hexgrad/kokoro",
+    "engineLicense": "Apache-2.0 (weights + inference package, commercial use explicitly permitted per model card)",
+    "voiceFamily": "af_heart (American English female)",
+    "voiceLicenseNote": "Same Apache-2.0 weights license as the rest of Kokoro-82M -- no separate per-voice license.",
+    "note": "Channel's own research doc (penny-blueprint-topics-voice-music.md) recommended Kokoro but flagged voice-ID selection as an open gap needing a listening-test pick. Resolved here via Kokoro's own VOICES.md: af_heart carries the highest overall grade (A) of any American-English voice in the pack, and reads as calm/neutral/clear rather than hyped -- the best documented fit for this channel's explicit 'practical, trustworthy, no-hype' tone target. Not independently ear-auditioned in this session; re-audition before locking production voice, same caveat pattern as Mind Mosaic's pilot."
+  },
+  "music": {
+    "policy": "royalty-free-safe-default",
+    "note": "Copyright Risk Flag in research doc (trending-track discovery upside vs. Content ID/takedown risk on a monetized, automated channel) is an explicit operator decision, not resolved here. Pilot defaults to the safe (non-trending) path, same as Mind Mosaic -- see pipeline music-bed generation for what is actually wired vs. still a stub."
+  },
+  "sfx": {
+    "source": "@rse/soundfx (CC-0 / CC-BY-3.0), individual soundfx.d/*.mp3 files vendored locally",
+    "path": "soundfx.d/"
+  },
+  "visualTokens": {
+    "background": {
+      "explanationBase": "#171310",
+      "explanationBaseAlt": "#211C17",
+      "infographicCardBg": "#0E0D0C"
+    },
+    "moodAccents": {
+      "calmInsight": { "primary": "#D9D0C7", "secondary": "#A58E78" },
+      "lightnessEnergy": { "primary": "#393ED8", "secondary": "#5D6D94" },
+      "tensionBias": { "primary": "#D38317" }
+    },
+    "captionEmphasis": "#D9D0C7",
+    "captionDefault": "#FFFFFF",
+    "notes": "Base/card colors are a dark-mode adaptation of Register B (research/visual-reference/penny-blueprint.md) -- the actual measured high-performing Short's warm off-white/tan palette (#D9D0C7 title-highlight, #A58E78 desk tan), inverted to a warm near-black canvas since this pipeline renders graphics-only beats rather than live warm-lit footage. calmInsight carries that measured warm-neutral register (the channel's dominant, trustworthy register). lightnessEnergy and tensionBias intentionally borrow from Register A (the aspirational-fintech Dribbble shots, #393ED8 indigo / #D38317 amber) -- used sparingly as accent pops per the moodboard's own recommendation to reserve the flashier register for occasional emphasis, not the base look, given Register A's motion claims are unverified marketing copy while Register B is the one directly measured reference."
+  },
+  "typography": {
+    "captionStyle": "bold grotesque sans-serif, black-on-light in the source register, inverted to white-on-dark here",
+    "captionFallbackFontStack": "'Archivo Black', 'Inter', 'Helvetica Neue', system-ui, sans-serif",
+    "captionRevealUnit": "measured reference uses fully-formed hard-cut text (no gradual reveal); this pipeline's KineticCaption/InfoCard/DataChart primitives all use a shared staggered word/item reveal instead -- a real adaptation gap vs. the moodboard's finding, disclosed in VERIFICATION.md rather than claimed as an exact match",
+    "emphasisTier": "single warm off-white emphasis tone (#D9D0C7), no separate gold/bright accent -- matches the measured register's high-contrast but non-neon character"
+  },
+  "spacing": {
+    "captionSafeZoneVerticalPct": [0.60, 0.78],
+    "infographicReveal": "staggered/incremental, one element per speech beat, matching InfoCard/DataChart's existing pattern",
+    "brollDensity": "cap concurrent on-screen text blocks at 2 (headline/tip + caption) plus one visual anchor (chart, card), per moodboard Motion-Personality Direction"
+  },
+  "pacing": {
+    "fps": 60,
+    "referenceAvgShotLengthSeconds": 6.91,
+    "referenceAvgShotLengthFrames60fps": 414,
+    "referenceMedianShotLengthFrames60fps": 378,
+    "referenceCutsPerMinute": 8.68,
+    "hookWindowSeconds": 3,
+    "hookWindowFrames": 180,
+    "note": "Reference clip's pacing is driven almost entirely by cut frequency, not within-shot animation -- see moodboard Motion/Pacing Notes. Adapted here as beat duration driven by VO length (per existing pipeline pattern) rather than a fixed cut clock."
+  },
+  "motionPersonality": {
+    "layoutVariance": "medium-low",
+    "motionIntensity": "low",
+    "visualDensity": "low-medium",
+    "easingNote": "avoid bounce/overshoot entirely -- the one directly-measured reference shows zero eased/spring text animation (hard cuts only). Ease-out-cubic entrances only, reserving at most one moderate pop for the single most important number per the moodboard's recommendation (not implemented as a distinct motif here, flagged as a future refinement)."
+  },
+  "shotGrammar": [
+    { "beat": "hook", "primitive": "KineticCaption", "accent": "lightnessEnergy" },
+    { "beat": "concept_card", "primitive": "InfoCard", "accent": "calmInsight" },
+    { "beat": "bridge", "primitive": "KineticCaption", "accent": "lightnessEnergy" },
+    { "beat": "savings_example", "primitive": "DataChart", "accent": "calmInsight" },
+    { "beat": "explanation", "primitive": "KineticCaption", "accent": "calmInsight" },
+    { "beat": "mechanism", "primitive": "InfoCard", "accent": "tensionBias" },
+    { "beat": "conclusion", "primitive": "KineticCaption", "accent": "calmInsight" }
+  ]
+}
