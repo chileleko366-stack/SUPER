@@ -1,0 +1,91 @@
+{
+  "slug": "echoes-of-ages",
+  "displayName": "Echoes of Ages",
+  "niche": "history, civilizations, turning points, timelines/maps",
+  "tone": "epic, documentary-narrator gravitas",
+  "sourceDocs": {
+    "moodboard": "research/visual-reference/echoes-of-ages.md",
+    "topicsVoiceMusic": "research/channels/echoes-of-ages-topics-voice-music.md"
+  },
+  "hookFormula": "cold-open-turning-point",
+  "narrativeStructure": "context-then-chronological-rise-with-payoff",
+  "firecrawlQueryPatterns": [
+    "this day in history turning point 2026",
+    "forgotten ancient civilizations history 2026",
+    "empire rise and fall history documentary 2026"
+  ],
+  "voice": {
+    "engine": "kokoro",
+    "checkpoint": "bm_george",
+    "langCode": "b",
+    "engineRepo": "hexgrad/kokoro",
+    "engineLicense": "Apache-2.0 (weights + inference package, self-hosted, no API dependency)",
+    "voiceFamily": "bm_george (British English male)",
+    "voiceLicense": "Apache-2.0",
+    "voiceLicenseNote": "Rated 'B' target-quality, highest overall grade among British male voices in Kokoro-82M's VOICES.md -- chosen for 'epic documentary narrator' register. am_fenrir (American, deep/authoritative) is the documented fallback if bm_george doesn't land on audition.",
+    "note": "Per research doc: CPU RTF (~0.47-0.51) is an extrapolation from third-party benchmarks, not measured on this machine -- see this run's VERIFICATION.md for the actually-measured synth time."
+  },
+  "music": {
+    "policy": "royalty-free-safe-default",
+    "note": "Copyright Risk Flag in research/channels/echoes-of-ages-topics-voice-music.md leaves trending-vs-royalty-free as an explicit operator decision (unblocked-video risk is worse on Shorts than long-form). Pipeline defaults to the safe (non-trending) path -- see pipeline/run_channel.py synthesize_music_bed() for what is actually wired (a placeholder synth pad) vs. still a stub pending real library sourcing."
+  },
+  "sfx": {
+    "source": "@rse/soundfx (CC-0 / CC-BY-3.0), individual soundfx.d/*.mp3 files vendored locally, shared across channels",
+    "path": "soundfx.d/"
+  },
+  "visualTokens": {
+    "background": {
+      "explanationBase": "#0C1A25",
+      "explanationBaseAlt": "#C3B2AA",
+      "infographicCardBg": "#1A3240"
+    },
+    "moodAccents": {
+      "calmInsight": { "primary": "#8B8B70", "secondary": "#D0BBA3" },
+      "lightnessEnergy": { "primary": "#00FF20", "secondary": "#D0BBA3" },
+      "tensionBias": { "primary": "#D13832" }
+    },
+    "captionEmphasis": "#FDFC00",
+    "captionDefault": "#FFFFFF",
+    "timeline": {
+      "trackColor": "#0C1A25",
+      "playheadColor": "#D13832",
+      "markerBg": "#0C1A25",
+      "markerLabel": "#D0BBA3",
+      "eraFill": "#8B8B70"
+    },
+    "notes": "All hex values above are the moodboard's own PIL-measured pixel samples (research/visual-reference/echoes-of-ages.md, Extracted Color Tokens) -- none invented. explanationBase = year-badge navy (#0C1A25, near-black). explanationBaseAlt = parchment map-paper base (#C3B2AA), used as the TimelineReveal beat's backdrop. infographicCardBg = map-water navy-teal (#1A3240). calmInsight.primary = territory-fill olive (#8B8B70). lightnessEnergy.primary = the reference's second (green) karaoke-highlight neon (#00FF20). tensionBias.primary = the EPIC HISTORY brand red (#D13832). captionEmphasis = the reference's primary (yellow) karaoke-highlight neon (#FDFC00) -- the schema only has one emphasis-color slot, so yellow was chosen as the default and green is exposed instead via the lightnessEnergy accent slot. Cream lettering (#D0BBA3) is used as both moodAccents secondaries and the timeline marker-label/year-badge-numeral color. #141414 caption-outline was not wired as a token (WebkitTextStroke in TimelineReveal.tsx approximates it inline instead of adding a new token for a single stroke color)."
+  },
+  "typography": {
+    "captionStyle": "heavy condensed all-caps grotesque sans, white fill, thick black stroke + soft drop shadow (common 'auto-caption burn-in' style, not a bespoke typeface -- moodboard Open Gap: exact family unconfirmed)",
+    "captionFallbackFontStack": "'Anton', 'Oswald', 'Archivo Black', system-ui, sans-serif",
+    "captionRevealUnit": "2-3 word caption cards, ~0.5-0.75s cadence (measured directly from a fps=4 ffmpeg sample of the reference clip)",
+    "emphasisTier": "two-tier: white default, one color-punched keyword per caption card (yellow #FDFC00 wired as the default emphasis token; green #00FF20 available via the lightnessEnergy accent for TimelineReveal/InfoCard-style beats)"
+  },
+  "spacing": {
+    "captionSafeZoneVerticalPct": [0.69, 0.87],
+    "infographicReveal": "staggered/incremental -- one timeline era marker or InfoCard trait per speech beat, not all-at-once",
+    "brollDensity": "low: at most two active UI layers (brand accent + one caption/marker cluster) at any instant, large open negative-space field, matching the reference's 'map fills frame, logo pinned top, caption pinned lower-third' composition"
+  },
+  "pacing": {
+    "fps": 60,
+    "referenceShotStructure": "single continuous 94s shot in the reference clip (animated map pan/zoom, zero hard cuts) -- this pipeline's shared ExplainerComposition is Sequence/hard-cut based only (see src/remotion/ExplainerComposition.tsx), so this channel adapts the format into a small number of hard-cut beats rather than literally reproducing one unbroken shot for the full runtime. TimelineReveal's continuous playhead sweep approximates the reference's 'one continuous camera' feel within a single beat; it does not extend across beat boundaries. Documented deviation, not a full shot-structure match.",
+    "referenceCaptionCadenceSeconds": [0.5, 0.75],
+    "hookWindowSeconds": 3,
+    "hookWindowFrames": 180
+  },
+  "motionPersonality": {
+    "layoutVariance": "low",
+    "motionIntensity": "low-to-moderate, asymmetric: calm visual bed (playhead/marker motion, no bounce/overshoot) carrying a punchier caption layer",
+    "visualDensity": "low",
+    "easingNote": "ease-in-out/ease-out only for camera-like motion (playhead sweep, marker reveal), matching the moodboard's 'no visible overshoot/bounce, reads as smooth easeInOut or linear' finding; avoid spring/backIn/anticipate presets"
+  },
+  "shotGrammar": [
+    { "beat": "hook", "primitive": "KineticCaption", "accent": "tensionBias" },
+    { "beat": "context_card", "primitive": "InfoCard", "accent": "calmInsight" },
+    { "beat": "timeline_map", "primitive": "TimelineReveal", "accent": "lightnessEnergy" },
+    { "beat": "turning_point", "primitive": "KenBurnsCard", "accent": "tensionBias" },
+    { "beat": "rise", "primitive": "KineticCaption", "accent": "calmInsight" },
+    { "beat": "legacy", "primitive": "InfoCard", "accent": "lightnessEnergy" },
+    { "beat": "conclusion", "primitive": "KineticCaption", "accent": "calmInsight" }
+  ]
+}
