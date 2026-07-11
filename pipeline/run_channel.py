@@ -31,11 +31,14 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from lib import firecrawl_client, nim_client, tts_piper, tts_kokoro, assets_gen  # noqa: E402
+from lib import firecrawl_client, nim_client, tts_piper, tts_kokoro, assets_gen, grounding_gate  # noqa: E402
 
 ROOT = Path(__file__).parent.parent
 FPS = 60
 MIN_SEGMENT_FRAMES = 60  # 1s floor so no beat is imperceptibly short
+
+MIN_SOURCE_TEXT_CHARS = 200  # below this, a scrape is too thin to script/ground against
+MAX_SOURCE_TEXT_CHARS = 6000  # cap prompt size/cost; plenty for a 45-70s short's worth of grounding
 
 CUT_SFX_CYCLE = ["click1.mp3", "click2.mp3", "chime1.mp3", "click1.mp3", "click2.mp3", "chime1.mp3", "click1.mp3"]
 HOOK_SFX = "whoosh1.mp3"
@@ -49,20 +52,56 @@ def load_channel_config(slug: str) -> dict:
 
 
 def source_topic(channel: dict) -> dict:
-    """Real Firecrawl call -- picks the first fresh result for one of the
-    channel's configured query patterns. Falls back through patterns if a
-    query returns nothing."""
+    """Real Firecrawl call -- searches each of the channel's configured query
+    patterns in turn and, for each result, actually scrapes the full article
+    (not just the search snippet) via firecrawl_client.scrape(). The full
+    scraped text becomes `sourceText`, the only grounding material the script
+    prompt and the grounding gate are allowed to treat as fact -- a title +
+    one-sentence search snippet was not enough to write or verify a script
+    against (see the 2026-07-11 fabrication audit in research/audit/). Skips
+    results that fail to scrape or scrape too thin (MIN_SOURCE_TEXT_CHARS) and
+    tries the next result/pattern rather than silently falling back to
+    snippet-only, since that would reopen the exact gap this closes."""
     for query in channel["firecrawlQueryPatterns"]:
         results = firecrawl_client.search(query, limit=5)
-        if results:
-            top = results[0]
-            return {"query": query, "title": top.get("title", ""), "url": top.get("url", ""),
-                     "description": top.get("description", "")}
-    raise RuntimeError("No Firecrawl search results across any configured query pattern")
+        for result in results:
+            url = result.get("url", "")
+            if not url:
+                continue
+            try:
+                markdown = firecrawl_client.scrape(url)
+            except Exception as e:
+                print(f"      scrape failed for {url}: {e}")
+                continue
+            text = markdown.strip()
+            if len(text) < MIN_SOURCE_TEXT_CHARS:
+                print(f"      scrape too thin ({len(text)} chars) for {url}, trying next result")
+                continue
+            return {
+                "query": query,
+                "title": result.get("title", ""),
+                "url": url,
+                "description": result.get("description", ""),
+                "sourceText": text[:MAX_SOURCE_TEXT_CHARS],
+            }
+    raise RuntimeError(
+        "No Firecrawl search result yielded scrapable full-article content "
+        "across any configured query pattern"
+    )
 
 
 SCRIPT_SYSTEM_PROMPT = """You write short-form (45-70 second) faceless YouTube Shorts scripts.
 Voice/tone is set by the operator. Output ONLY valid JSON, no prose, no markdown fences.
+You will be given SOURCE TEXT: the full text of one real article/page actually retrieved for
+this topic. It is your only source of truth. Do not name a specific person, company,
+place, date, or number, and do not assert a specific cause or mechanism, unless it is
+stated in the SOURCE TEXT -- a downstream grounding checker will reject any script that
+does. Where the source doesn't give you a specific detail, write around it in general
+terms rather than inventing one to fill the gap. Conversely, where the SOURCE TEXT does
+contain specific facts, names, findings, or numbers, USE them -- prefer quoting/paraphrasing
+a concrete detail the source actually gives over writing a vague generality that merely
+gestures at the topic (a checker will also reject vague filler as ungrounded if it can't
+tell what in the source it's supposed to correspond to).
 Every beat's "text" field is a short spoken line (8-20 words) suitable for text-to-speech
 narration and on-screen kinetic captions -- not a written essay. Beats with "traits" get
 3 short (1-4 word) keyword/phrase items, not full sentences. Beats with "timelineEvents"
@@ -91,6 +130,15 @@ CODE_BLOCK_GUIDANCE = (
     "this beat is still a short spoken line (6-10 words, e.g. \"Here's binary search in "
     "six lines of Python\") -- it is read aloud by TTS AND shown as the on-screen snippet "
     "title, so keep it short enough to fit one line."
+)
+
+KEN_BURNS_GUIDANCE = (
+    ' This beat is a mood/b-roll still, not a factual claim -- write "text" as a generic, '
+    "unnamed illustrative vignette (e.g. \"a struggling shopkeeper closes up for the "
+    'night\") or an explicit hypothetical framed with "imagine"/"picture" -- do not name '
+    "a specific real person, company, or place here, and do not state it as if it "
+    "actually happened; a grounding checker will reject it as an unsupported specific "
+    "claim otherwise."
 )
 
 
@@ -155,6 +203,7 @@ def build_script_prompt(channel: dict, topic: dict) -> str:
     beat_desc = "\n".join(
         f'- beat "{b["beat"]}" (primitive: {b["primitive"]})'
         + (CODE_BLOCK_GUIDANCE if b["primitive"] == "CodeBlock" else "")
+        + (KEN_BURNS_GUIDANCE if b["primitive"] == "KenBurnsCard" else "")
         for b in beats
     )
     example = {b["beat"]: _example_for_beat(b) for b in beats}
@@ -180,8 +229,15 @@ Narrative structure: {channel['narrativeStructure']}
 
 Topic sourced live via Firecrawl just now:
 Title: {topic['title']}
-Description: {topic['description']}
 URL: {topic['url']}
+
+SOURCE TEXT (the full scraped article -- this is the ONLY material you actually have
+for this topic; a grounding checker will reject any specific name, number, date, or
+causal claim in your script that isn't supported by this text, so do not state
+anything more specific or more confident than what's written here):
+---
+{topic['sourceText']}
+---
 
 Write a script with exactly these beats, in this order:
 {beat_desc}
@@ -189,7 +245,7 @@ Write a script with exactly these beats, in this order:
 
 Return JSON with exactly this shape (the values below are illustrative
 placeholders describing what each field is for -- replace every one with
-real content written for the topic above):
+real content written for the topic above, grounded in the SOURCE TEXT):
 {example_json}"""
 
 
@@ -337,8 +393,31 @@ def run(channel_slug: str, run_id: str | None = None) -> Path:
     print(f"      topic: {topic['title'][:80]}")
 
     print("[2/5] Generating script via NVIDIA NIM...")
-    script = generate_script(channel, topic)
+    beat_primitives = {b["beat"]: b["primitive"] for b in channel["shotGrammar"]}
+    MAX_SCRIPT_ATTEMPTS = 3
+    claims = gate_report = script = None
+    for attempt in range(1, MAX_SCRIPT_ATTEMPTS + 1):
+        script = generate_script(channel, topic)
+        print(f"[2.5/5] Checking script claims against scraped source (grounding gate, attempt {attempt}/{MAX_SCRIPT_ATTEMPTS})...")
+        claims, gate_report = grounding_gate.check_gate(channel_slug, topic, script, beat_primitives)
+        ungrounded = [c for c in claims if c["status"] != "grounded"]
+        if not ungrounded:
+            print(f"      {len(claims)}/{len(claims)} claims grounded, proceeding")
+            break
+        summary = "; ".join(f"[{c['beat']}.{c['field']}] \"{c['claim']}\" ({c['reason']})" for c in ungrounded)
+        print(f"      {len(ungrounded)}/{len(claims)} ungrounded -- {summary}")
+        if attempt == MAX_SCRIPT_ATTEMPTS:
+            (out_dir / "script.json").write_text(json.dumps(script, indent=2), encoding="utf-8")
+            (out_dir / "GROUNDING_REPORT.md").write_text(gate_report, encoding="utf-8")
+            raise RuntimeError(
+                f"Grounding gate rejected {channel_slug} run {run_id} after {MAX_SCRIPT_ATTEMPTS} "
+                f"script regeneration attempts: {len(ungrounded)} ungrounded claim(s) remain -- "
+                f"{summary}. Full report at {out_dir / 'GROUNDING_REPORT.md'}. Not rendering."
+            )
+        print("      regenerating script and re-checking...")
+
     (out_dir / "script.json").write_text(json.dumps(script, indent=2), encoding="utf-8")
+    (out_dir / "GROUNDING_REPORT.md").write_text(gate_report, encoding="utf-8")
 
     print(f"[3/5] Synthesizing voiceover ({channel['voice'].get('engine', 'piper')} TTS) + resolving assets...")
     sfx_dir = ROOT / "soundfx.d"

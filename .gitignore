@@ -10,4 +10,5 @@ research/frames_tmp/
 .voices/
 out/
 public/generated/
+public/_quarantined/
 *.wav
