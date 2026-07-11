@@ -60,15 +60,29 @@ export const KineticCaption: React.FC<{
           );
           // Exact match, or simple prefix match to tolerate NIM returning a
           // word-form variant (e.g. "decisions" vs. the script's "decision").
-          const cleanWord = word.replace(/[.,!?]/g, "").toLowerCase();
+          // Compound tokens (slash-joined designations like "3I/ATLAS.",
+          // hyphenated words, etc.) are split into sub-tokens on
+          // non-alphanumeric boundaries so each part is matched individually
+          // -- otherwise e.g. "3I/ATLAS" as one token never matches "atlas"
+          // because the "3i/" prefix breaks the startsWith checks in both
+          // directions. A plain single word is unaffected: splitting it
+          // yields itself as the only sub-token.
           const emphasisLower = emphasisWord?.toLowerCase();
+          const subTokens = word
+            .toLowerCase()
+            .replace(/[.,!?]/g, "")
+            .split(/[^a-z0-9]+/i)
+            .filter(Boolean);
           const isEmphasis =
             !!emphasisLower &&
-            (cleanWord === emphasisLower ||
-              (cleanWord.length > 3 &&
-                emphasisLower.length > 3 &&
-                (cleanWord.startsWith(emphasisLower.slice(0, -1)) ||
-                  emphasisLower.startsWith(cleanWord.slice(0, -1)))));
+            subTokens.some(
+              (cleanWord) =>
+                cleanWord === emphasisLower ||
+                (cleanWord.length > 3 &&
+                  emphasisLower.length > 3 &&
+                  (cleanWord.startsWith(emphasisLower.slice(0, -1)) ||
+                    emphasisLower.startsWith(cleanWord.slice(0, -1))))
+            );
 
           return (
             <span
