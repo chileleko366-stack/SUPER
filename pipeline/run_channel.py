@@ -260,11 +260,10 @@ def synthesize_vo(text: str, channel: dict, out_wav: Path) -> float:
 
 def synthesize_music_bed(out_path: Path, duration_s: float) -> Path:
     """PLACEHOLDER music bed: a soft synthesized pad, NOT a sourced trending
-    or royalty-free-library track. Real music sourcing per the Copyright
-    Risk Flag in research/channels/mind-mosaic-topics-voice-music.md is an
-    explicit operator decision, not resolved by this pipeline. This exists
-    only so the audio-ducking system has something real to duck under for
-    verification purposes."""
+    or royalty-free-library track. This is the fallback used only when a
+    channel has no real sourced track under assets/music/<slug>.<ext> yet
+    (see resolve_music_bed) -- exists only so the audio-ducking system has
+    something real to duck under for verification purposes in that case."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
     cmd = [
         "ffmpeg", "-y", "-f", "lavfi", "-i", f"sine=frequency=110:duration={duration_s}",
@@ -276,6 +275,49 @@ def synthesize_music_bed(out_path: Path, duration_s: float) -> Path:
     ]
     subprocess.run(cmd, capture_output=True, check=True, timeout=60)
     return out_path
+
+
+REAL_MUSIC_EXTS = ("mp3", "m4a", "ogg", "flac")
+
+
+def resolve_music_bed(channel_slug: str, audio_dir: Path, duration_s: float) -> str:
+    """Real sourced music bed, replacing the synthesized placeholder wherever
+    one has actually been sourced and licensed. Looks for a pre-downloaded,
+    committed master track at assets/music/<slug>.<ext> (mp3/m4a/ogg/flac --
+    deliberately never .wav, since .gitignore blanket-ignores *.wav and a
+    real master stored as .wav would silently fail to be tracked by git).
+    Each such file has a matching research/music/<slug>.md documenting the
+    track's title/artist/source/license terms (verified to explicitly permit
+    commercial + monetized-YouTube use) and required attribution text.
+
+    AudioMix.tsx already loops whatever musicSrc points at
+    (`<Audio ... loop />`), so the sourced master does not need to be
+    trimmed or regenerated to match this run's exact duration -- it is
+    simply copied byte-for-byte into this run's audio/ dir under the name
+    props.json's musicSrc expects.
+
+    Falls back to the synthesized placeholder (see synthesize_music_bed)
+    only if no real track has been sourced for this channel yet, so the
+    pipeline still produces a playable, ducking-compatible music bed for
+    any not-yet-sourced channel rather than failing outright.
+
+    Returns the path relative to the per-run public dir (e.g.
+    "audio/music_bed.mp3"), for direct use as props.json's musicSrc suffix.
+    """
+    music_library = ROOT / "assets" / "music"
+    for ext in REAL_MUSIC_EXTS:
+        src = music_library / f"{channel_slug}.{ext}"
+        if src.exists():
+            dst_rel = f"audio/music_bed.{ext}"
+            dst = audio_dir.parent / dst_rel
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            dst.write_bytes(src.read_bytes())
+            return dst_rel
+
+    dst_rel = "audio/music_bed.wav"
+    dst = audio_dir.parent / dst_rel
+    synthesize_music_bed(dst, duration_s)
+    return dst_rel
 
 
 def run(channel_slug: str, run_id: str | None = None) -> Path:
@@ -366,7 +408,7 @@ def run(channel_slug: str, run_id: str | None = None) -> Path:
         segments.append(seg)
         print(f"      [{beat}] {duration_s:.2f}s -> {duration_frames}f  \"{text[:60]}\"")
 
-    print("[4/5] Copying SFX + generating placeholder music bed...")
+    print("[4/5] Copying SFX + resolving music bed...")
     used_sfx = {seg["cutSfx"].split("/")[-1] for seg in segments}
     for name in used_sfx:
         src = sfx_dir / name
@@ -376,8 +418,11 @@ def run(channel_slug: str, run_id: str | None = None) -> Path:
         dst.write_bytes(src.read_bytes())
 
     total_duration_s = sum(s["durationInFrames"] for s in segments) / FPS
-    music_rel = "audio/music_bed.wav"
-    synthesize_music_bed(public_dir / music_rel, total_duration_s)
+    music_rel = resolve_music_bed(channel_slug, public_dir / "audio", total_duration_s)
+    if music_rel.endswith(".wav"):
+        print(f"      WARNING: no sourced track at assets/music/{channel_slug}.<ext> -- using synthesized placeholder")
+    else:
+        print(f"      music bed: assets/music/{channel_slug}.{music_rel.rsplit('.', 1)[-1]} (see research/music/{channel_slug}.md for license)")
 
     # DataChart's motion (calm ease-out vs. energetic spring-overshoot) is
     # driven by the channel's own motionPersonality.motionIntensity research
