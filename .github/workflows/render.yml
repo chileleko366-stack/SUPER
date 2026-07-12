@@ -1,11 +1,29 @@
-name: Render Shorts (10-channel matrix)
+name: Render Shorts (7-channel matrix)
+
+# Scoped to the 7 channels that currently pass the automated grounding gate
+# (research/audit/GATE_VALIDATION_2026-07-12.md). thought-tides is
+# intentionally held out: its `mechanism` beat needs a crisp claim that its
+# actual sourced material (discursive philosophy transcripts) doesn't
+# reduce to without paraphrase-drift the gate correctly rejects -- a
+# shot-grammar/beat-design question for the channel, not something CI can
+# route around. mind-mosaic (separate pilot, its own workflow) and
+# penny-blueprint (no channel has been run/audited yet) are out of scope
+# for the same reason: neither has been through this gate-validation pass.
+#
+# Confirmed (not yet enabled) twice-daily cadence: 00:00 and 12:00 UTC,
+# `cron: "0 0,12 * * *"`. To enable: add a top-level `schedule:` key back
+# under `on:` with that cron entry -- do not do this without explicit
+# operator confirmation. (An earlier version of this file had a `schedule:`
+# key present with only a commented-out cron line under it, which YAML
+# parses as `schedule: null` -- GitHub Actions' schema rejects a null
+# schedule and refuses to register the ENTIRE workflow, not just the
+# schedule trigger. That silently caused all 4 of this workflow's prior
+# runs to fail with zero jobs ever created, which had nothing to do with
+# the pipeline itself. Omitting the key entirely, as done here, is the
+# only safe way to leave scheduling disabled.)
 
 on:
   workflow_dispatch: {}
-  schedule:
-    # TBD: placeholder twice-daily cadence, confirm timezone/times with operator
-    # before enabling — currently commented out until pipeline is proven end-to-end.
-    # - cron: "0 12,0 * * *"
 
 jobs:
   render:
@@ -13,16 +31,13 @@ jobs:
       fail-fast: false
       matrix:
         channel:
-          - penny-blueprint
-          - cosmic-window
-          - echoes-of-ages
-          - mind-mosaic
-          - venture-forge
-          - thought-tides
-          - earthwise-everyday
-          - market-lens
           - code-trail
+          - cosmic-window
+          - earthwise-everyday
+          - echoes-of-ages
+          - market-lens
           - silver-screen-insight
+          - venture-forge
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,22 +50,61 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install ffmpeg + espeak-ng
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
+        # ffmpeg is NOT preinstalled on ubuntu-latest (confirmed via a real
+        # failed run, see render-pilot.yml). espeak-ng is required by the
+        # kokoro TTS engine (used by echoes-of-ages) for English
+        # out-of-dictionary fallback.
+
       - name: Install Node deps
         run: npm install
 
       - name: Install Python deps
         run: pip install -r pipeline/requirements.txt
 
+      - name: Determine this channel's voice engine
+        id: voice
+        run: |
+          python -c "
+          import json
+          d = json.load(open('channels/${{ matrix.channel }}.json', encoding='utf-8'))
+          v = d['voice']
+          print(f\"engine={v['engine']}\")
+          print(f\"checkpoint={v['checkpoint']}\")
+          " >> "$GITHUB_OUTPUT"
+        # Reads the channel's own config rather than hardcoding a
+        # channel->voice mapping here, matching this pipeline's own
+        # convention (channels/<slug>.json is the single source of truth
+        # for channel-specific behavior, not code/workflow branches).
+
+      - name: Download Piper voice model
+        if: steps.voice.outputs.engine == 'piper'
+        run: |
+          mkdir -p .voices
+          cd .voices
+          python -m piper.download_voices "${{ steps.voice.outputs.checkpoint }}"
+
       - name: Run pipeline for channel
         env:
           FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
           NVIDIA_NIM_API_KEY: ${{ secrets.NVIDIA_NIM_API_KEY }}
-          CHANNEL: ${{ matrix.channel }}
-        run: python pipeline/run_channel.py --channel "$CHANNEL"
+        run: python pipeline/run_channel.py --channel "${{ matrix.channel }}" --run-id "gha-${{ github.run_id }}"
+
+      - name: Render with Remotion
+        run: |
+          npx remotion render src/remotion/index.ts Explainer \
+            "out/${{ matrix.channel }}/gha-${{ github.run_id }}/render.mp4" \
+            --props="out/${{ matrix.channel }}/gha-${{ github.run_id }}/props.json"
 
       - name: Upload rendered artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.channel }}-render
-          path: out/${{ matrix.channel }}/*.mp4
+          path: |
+            out/${{ matrix.channel }}/gha-${{ github.run_id }}/render.mp4
+            out/${{ matrix.channel }}/gha-${{ github.run_id }}/props.json
+            out/${{ matrix.channel }}/gha-${{ github.run_id }}/script.json
+            out/${{ matrix.channel }}/gha-${{ github.run_id }}/topic.json
+            out/${{ matrix.channel }}/gha-${{ github.run_id }}/GROUNDING_REPORT.md
           if-no-files-found: error
