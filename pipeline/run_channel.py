@@ -25,6 +25,7 @@ not fabricated-and-passed-off-as-real.
 import argparse
 import json
 import math
+import re
 import subprocess
 import sys
 import time
@@ -39,6 +40,7 @@ MIN_SEGMENT_FRAMES = 60  # 1s floor so no beat is imperceptibly short
 
 MIN_SOURCE_TEXT_CHARS = 200  # below this, a scrape is too thin to script/ground against
 MAX_SOURCE_TEXT_CHARS = 6000  # cap prompt size/cost; plenty for a 45-70s short's worth of grounding
+RESULTS_PER_QUERY_TO_SCRAPE = 2  # bounds total Firecrawl scrape calls per source_topic() run
 
 CUT_SFX_CYCLE = ["click1.mp3", "click2.mp3", "chime1.mp3", "click1.mp3", "click2.mp3", "chime1.mp3", "click1.mp3"]
 HOOK_SFX = "whoosh1.mp3"
@@ -51,20 +53,54 @@ def load_channel_config(slug: str) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _score_source_text(text: str) -> float:
+    """Heuristic 0..1 "is this actually substantive prose worth scripting
+    from, not a navigation/link-list page" score. Penalizes scrapes
+    dominated by markdown link syntax (e.g. github.com/trending's scrape
+    being almost entirely a "[Language](url)" selector list rather than any
+    real repo description) and rewards length up to a point, so a short
+    thin page can't outscore a long link-dump just by having fewer links.
+
+    This is a blunt proxy, not a topic-relevance judge -- it can't tell that
+    a multi-topic roundup's one-sentence mention of the actual beat's topic
+    is thin even though the page overall reads as real prose. That's why
+    source_topic() doesn't stop at the first candidate clearing a "good
+    enough" score; it scores everything in its budget and picks the max,
+    so a channel's better-targeted query pattern still wins on points even
+    when a worse pattern's result also "looks like real prose."""
+    if not text:
+        return 0.0
+    link_span_chars = sum(len(m.group(0)) for m in re.finditer(r"\[[^\]]*\]\([^)]*\)", text))
+    prose_ratio = max(0.0, 1 - (link_span_chars / len(text)))
+    length_score = min(len(text), 3000) / 3000
+    return prose_ratio * 0.7 + length_score * 0.3
+
+
 def source_topic(channel: dict) -> dict:
     """Real Firecrawl call -- searches each of the channel's configured query
-    patterns in turn and, for each result, actually scrapes the full article
-    (not just the search snippet) via firecrawl_client.scrape(). The full
-    scraped text becomes `sourceText`, the only grounding material the script
-    prompt and the grounding gate are allowed to treat as fact -- a title +
-    one-sentence search snippet was not enough to write or verify a script
-    against (see the 2026-07-11 fabrication audit in research/audit/). Skips
-    results that fail to scrape or scrape too thin (MIN_SOURCE_TEXT_CHARS) and
-    tries the next result/pattern rather than silently falling back to
-    snippet-only, since that would reopen the exact gap this closes."""
+    patterns and scrapes the full article (not just the search snippet) via
+    firecrawl_client.scrape() for a bounded set of candidates across ALL of
+    them (RESULTS_PER_QUERY_TO_SCRAPE per pattern), then returns whichever
+    candidate scores highest for actual scriptable content -- not just
+    whichever happens to be first.
+
+    This replaces an earlier version that returned the first result to
+    merely clear MIN_SOURCE_TEXT_CHARS. That was a real bug, not just a
+    query-wording problem: github.com/trending's scrape cleared the char
+    floor easily (it's stuffed with a full language-selector link list) but
+    contained essentially no explanatory prose, and the old logic locked
+    onto it before ever trying this same channel's own better-targeted
+    query patterns (e.g. code-trail's 3rd pattern, which surfaces a real
+    article profiling specific trending tools). See
+    research/audit/GATE_VALIDATION_2026-07-11.md for the diagnosis.
+
+    The full scraped text of the winning candidate becomes `sourceText`,
+    the only grounding material the script prompt and the grounding gate
+    are allowed to treat as fact."""
+    candidates = []  # list of (score, candidate_dict)
     for query in channel["firecrawlQueryPatterns"]:
         results = firecrawl_client.search(query, limit=5)
-        for result in results:
+        for result in results[:RESULTS_PER_QUERY_TO_SCRAPE]:
             url = result.get("url", "")
             if not url:
                 continue
@@ -75,19 +111,26 @@ def source_topic(channel: dict) -> dict:
                 continue
             text = markdown.strip()
             if len(text) < MIN_SOURCE_TEXT_CHARS:
-                print(f"      scrape too thin ({len(text)} chars) for {url}, trying next result")
+                print(f"      scrape too thin ({len(text)} chars) for {url}")
                 continue
-            return {
+            score = _score_source_text(text)
+            print(f"      candidate (score {score:.2f}, {len(text)} chars): {url}")
+            candidates.append((score, {
                 "query": query,
                 "title": result.get("title", ""),
                 "url": url,
                 "description": result.get("description", ""),
                 "sourceText": text[:MAX_SOURCE_TEXT_CHARS],
-            }
-    raise RuntimeError(
-        "No Firecrawl search result yielded scrapable full-article content "
-        "across any configured query pattern"
-    )
+            }))
+
+    if not candidates:
+        raise RuntimeError(
+            "No Firecrawl search result yielded scrapable full-article content "
+            "across any configured query pattern"
+        )
+    best_score, best_candidate = max(candidates, key=lambda c: c[0])
+    print(f"      chose (score {best_score:.2f}): {best_candidate['url']}")
+    return best_candidate
 
 
 SCRIPT_SYSTEM_PROMPT = """You write short-form (45-70 second) faceless YouTube Shorts scripts.
@@ -101,7 +144,12 @@ terms rather than inventing one to fill the gap. Conversely, where the SOURCE TE
 contain specific facts, names, findings, or numbers, USE them -- prefer quoting/paraphrasing
 a concrete detail the source actually gives over writing a vague generality that merely
 gestures at the topic (a checker will also reject vague filler as ungrounded if it can't
-tell what in the source it's supposed to correspond to).
+tell what in the source it's supposed to correspond to). If the SOURCE TEXT describes
+several distinct items (e.g. a roundup/listicle of multiple tools, products, or events),
+do not try to summarize all of them generically -- pick ONE specific item and write the
+entire script grounded in that one item's specific real details from the source. A vague
+sentence that could apply to all of them equally is exactly the kind of ungrounded filler
+that gets rejected; a specific sentence about one real item from the list will not.
 Every beat's "text" field is a short spoken line (8-20 words) suitable for text-to-speech
 narration and on-screen kinetic captions -- not a written essay. Beats with "traits" get
 3 short (1-4 word) keyword/phrase items, not full sentences. Beats with "timelineEvents"
